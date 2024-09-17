@@ -1,3 +1,2 @@
 sourceOrg,sourceProject,targetOrg,targetProject
-default,SourceProject,wf_target_demo,SourceProject1
-default,SourceProject,wf_target_demo,SourceProject2
+default,SourceProject,wf_target_demo,SourceProject
