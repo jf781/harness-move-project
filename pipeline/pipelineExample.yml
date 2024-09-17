@@ -1,0 +1,207 @@
+pipeline:
+  identifier: DemoPipeline
+  name: DemoPipeline
+  projectIdentifier: fechtlab
+  orgIdentifier: harnessOrg
+  tags: {}
+  stages:
+    - stage:
+        identifier: DemoPipeline
+        type: Custom
+        name: DemoPipeline
+        description: Demo for executing Harness Move Project executable
+        spec:
+          execution:
+            steps:
+              - step:
+                  identifier: clearRun1
+                  type: ShellScript
+                  name: clearRun1
+                  spec:
+                    shell: Bash
+                    executionTarget: {}
+                    source:
+                      type: Inline
+                      spec:
+                        script: |
+                          set -e  # Exit immediately on any error
+
+                          # Clean up if directories or files exist
+                          if [ -d "repo" ]; then
+                            echo "Found existing repo directory. Removing"
+                            rm -rf repo || { echo "Failed to remove repo"; exit 1; }
+                          fi
+
+                          if [ -f "repo.tar.gz" ]; then
+                            echo "Found existing repo.tar.gz file. Removing"
+                            rm repo.tar.gz || { echo "Failed to remove repo.tar.gz"; exit 1; }
+                          fi
+
+                          if [ -d "harness-move-project" ]; then
+                          echo "Found existing harness-move-project directory. Removing"
+                            rm -rf harness-move-project || { echo "Failed to remove harness-move-project"; exit 1; }
+                          fi
+
+                          if [ -f "harness.tar.gz" ]; then
+                            echo "Found existing harness.tar.gz file. Removing"
+                            rm harness.tar.gz || { echo "Failed to remove harness.tar.gz"; exit 1; }
+                          fi
+                    environmentVariables: []
+                    outputVariables: []
+                  timeout: 10m
+              - step:
+                  identifier: downloadRepo
+                  type: ShellScript
+                  name: downloadRepo
+                  spec:
+                    shell: Bash
+                    executionTarget: {}
+                    source:
+                      type: Inline
+                      spec:
+                        script: |
+                          set -e  # Exit immediately on any error
+
+                          # Create repo directory and move into it
+                          mkdir -p repo/tmp || { echo "Failed to create repo and tmp directories"; exit 1; }
+
+                          # Download the repository tarball
+                          curl --silent --location https://api.github.com/repos/jf781/harness-move-project/tarball/main \
+                            -H "Accept: application/vnd.github+json" \
+                            -H "Authorization: Bearer <+secrets.getValue("github_jf781_pat")>" \
+                            -H "X-GitHub-Api-Version: 2022-11-28" \
+                            -o repo.tar.gz || { echo "Failed to download tarball"; exit 1; }
+
+                          # Check the content of the tarball and capture the dynamic folder name
+                          gitRepoDirectory=$(tar -tzf repo.tar.gz | head -1 | cut -f1 -d"/") || { echo "Failed to extract tarball contents"; exit 1; }
+                          echo "gitRepoDirectory is $gitRepoDirectory"
+
+                          # Extract the tarball to a temporary location
+                          tar -xvf repo.tar.gz -C repo/tmp || { echo "Failed to extract repo.tar.gz"; exit 1; }
+
+                          # Move the extracted folder to the repo directory
+                          cp -rf repo/tmp/$gitRepoDirectory/* repo || { echo "Failed to move extracted repo"; exit 1; }
+                          rm -rf repo/tmp/$gitRepoDirectory
+                    environmentVariables: []
+                    outputVariables: []
+                  timeout: 10m
+              - step:
+                  identifier: downloadUtility
+                  type: ShellScript
+                  name: downloadUtility
+                  spec:
+                    shell: Bash
+                    executionTarget: {}
+                    source:
+                      type: Inline
+                      spec:
+                        script: |-
+                          set -e  # Exit immediately on any error
+
+                          # Get the latest release information
+                          release=$(curl --silent --location \
+                            -H "Accept: application/vnd.github+json" \
+                            -H "Authorization: Bearer <+secrets.getValue("github_jf781_pat")>" \
+                            -H "X-GitHub-Api-Version: 2022-11-28" \
+                            https://api.github.com/repos/jf781/harness-move-project/releases/latest) || { echo "Failed to fetch release information"; exit 1; }
+
+                          # Extract the download URL for the Linux release
+                          releaseLinuxUrl=$(echo $release | tr '\r\n' ' ' | jq '.assets[] | select(.name | endswith("linux-amd64.tar.gz")) | .browser_download_url' | tr -d '"') || { echo "Failed to parse release JSON"; exit 1; }
+
+                          # Download the release tarball
+                          curl --silent --location $releaseLinuxUrl -o harness.tar.gz || { echo "Failed to download harness tarball"; exit 1; }
+
+                          # Extract the harness tarball
+                          tar -xvf harness.tar.gz || { echo "Failed to extract harness.tar.gz"; exit 1; }
+                    environmentVariables: []
+                    outputVariables: []
+                  timeout: 10m
+              - step:
+                  identifier: executeUtility
+                  type: ShellScript
+                  name: executeUtility
+                  spec:
+                    shell: Bash
+                    executionTarget: {}
+                    source:
+                      type: Inline
+                      spec:
+                        script: |
+                          set -e  # Exit immediately on any error
+
+                          # Initiates the Harness move project process
+                          if [ -f "repo/test/csvFile.csv" ]; then
+                            ./harness-move-project --csvPath repo/test/csvFile.csv --accountId <+pipeline.variables.accountId> --apiToken <+secrets.getValue("harness_api_key")> --baseUrl <+pipeline.variables.baseUrl> || { echo "Failed to execute the utility"; exit 1; }
+                          else
+                            echo "Failed find csvFile"
+                            exit 1
+                          fi
+                    environmentVariables: []
+                    outputVariables: []
+                  timeout: 10m
+              - step:
+                  identifier: clearRun
+                  type: ShellScript
+                  name: clearRun
+                  spec:
+                    shell: Bash
+                    executionTarget: {}
+                    source:
+                      type: Inline
+                      spec:
+                        script: |
+                          set -e  # Exit immediately on any error
+
+                          # Clean up if directories or files exist
+                          if [ -d "repo" ]; then
+                            echo "Found existing repo directory. Removing"
+                            rm -rf repo || { echo "Failed to remove repo"; exit 1; }
+                          fi
+
+                          if [ -f "repo.tar.gz" ]; then
+                            echo "Found existing repo.tar.gz file. Removing"
+                            rm repo.tar.gz || { echo "Failed to remove repo.tar.gz"; exit 1; }
+                          fi
+
+                          if [ -d "harness-move-project" ]; then
+                          echo "Found existing harness-move-project directory. Removing"
+                            rm -rf harness-move-project || { echo "Failed to remove harness-move-project"; exit 1; }
+                          fi
+
+                          if [ -f "harness.tar.gz" ]; then
+                            echo "Found existing harness.tar.gz file. Removing"
+                            rm harness.tar.gz || { echo "Failed to remove harness.tar.gz"; exit 1; }
+                          fi
+                    environmentVariables: []
+                    outputVariables: []
+                  timeout: 10m
+                  when:
+                    stageStatus: All
+          environment:
+            environmentRef: test
+            deployToAll: false
+        tags: {}
+        platform:
+          os: Linux
+          arch: Amd64
+        runtime:
+          type: Cloud
+          spec: {}
+  variables:
+    - name: accountId
+      type: String
+      description: The Harness Account ID that
+      required: false
+      value: <+input>
+    - name: baseUrl
+      type: String
+      default: https://app.harness.io
+      description: The URL of the Harness instance.
+      required: false
+      value: <+input>
+  properties:
+    ci:
+      codebase:
+        connectorRef: jf781_harness_move_project
+        build: <+input>
+        sparseCheckout: []
