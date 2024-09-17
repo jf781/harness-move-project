@@ -139,44 +139,6 @@ pipeline:
                     environmentVariables: []
                     outputVariables: []
                   timeout: 10m
-              - step:
-                  identifier: clearRun
-                  type: ShellScript
-                  name: clearRun
-                  spec:
-                    shell: Bash
-                    executionTarget: {}
-                    source:
-                      type: Inline
-                      spec:
-                        script: |
-                          set -e  # Exit immediately on any error
-
-                          # Clean up if directories or files exist
-                          if [ -d "repo" ]; then
-                            echo "Found existing repo directory. Removing"
-                            rm -rf repo || { echo "Failed to remove repo"; exit 1; }
-                          fi
-
-                          if [ -f "repo.tar.gz" ]; then
-                            echo "Found existing repo.tar.gz file. Removing"
-                            rm repo.tar.gz || { echo "Failed to remove repo.tar.gz"; exit 1; }
-                          fi
-
-                          if [ -d "harness-move-project" ]; then
-                          echo "Found existing harness-move-project directory. Removing"
-                            rm -rf harness-move-project || { echo "Failed to remove harness-move-project"; exit 1; }
-                          fi
-
-                          if [ -f "harness.tar.gz" ]; then
-                            echo "Found existing harness.tar.gz file. Removing"
-                            rm harness.tar.gz || { echo "Failed to remove harness.tar.gz"; exit 1; }
-                          fi
-                    environmentVariables: []
-                    outputVariables: []
-                  timeout: 10m
-                  when:
-                    stageStatus: All
           environment:
             environmentRef: test
             deployToAll: false
