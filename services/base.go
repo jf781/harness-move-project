@@ -84,25 +84,3 @@ func reportFailed(failed []string, description string) {
 		fmt.Println(color.RedString(strings.Join(failed, "\n")))
 	}
 }
-
-// User for counter operations
-
-var apiCalls int = 0
-
-var projects int = 0
-
-func IncrementApiCalls() {
-	apiCalls++
-}
-
-func GetApiCalls() int {
-	return apiCalls
-}
-
-func IncrementProjects() {
-	projects++
-}
-
-func GetProjects() int {
-	return projects
-}
