@@ -24,6 +24,7 @@ type Operation interface {
 }
 
 func createYaml(yaml, sourceOrg, sourceProject, targetOrg, targetProject string) string {
+	// used to update a YAML pipeline.  Will add the orgIdentifier and projectIdentifier if not found
 	var out string
 
 	if strings.Contains(yaml, "orgIdentifier: ") {
@@ -42,6 +43,7 @@ func createYaml(yaml, sourceOrg, sourceProject, targetOrg, targetProject string)
 }
 
 func createYamlQuotes(yaml, sourceOrg, sourceProject, targetOrg, targetProject string) string {
+	// used to update a YAML pipeline if quotes are defined.  Will add the orgIdentifier and projectIdentifier if not found
 	var out string
 
 	if strings.Contains(yaml, "orgIdentifier: ") {
@@ -58,6 +60,23 @@ func createYamlQuotes(yaml, sourceOrg, sourceProject, targetOrg, targetProject s
 
 	return out
 }
+
+func updateYaml(yaml, sourceOrg, sourceProject, targetOrg, targetProject string) string {
+	// used to only update a YAML pipeline. Will NOT add the orgIdentifier and projectIdentifier if not found
+	out := yaml 
+	
+	if strings.Contains(out, "\"orgIdentifier\": \""+sourceOrg+"\"") {
+		out = strings.ReplaceAll(out, "\"orgIdentifier\": \""+sourceOrg+"\"", "\"orgIdentifier\": \""+targetOrg+"\"")
+	}
+
+	if strings.Contains(out, "\"projectIdentifier\": \""+sourceProject+"\"") {
+		out = strings.ReplaceAll(out, "\"projectIdentifier\": \""+sourceProject+"\"", "\"projectIdentifier\": \""+targetProject+"\"")
+	}
+
+	return out
+}
+
+
 
 func handleErrorResponse(resp *resty.Response) error {
 	result := model.ErrorResponse{}
