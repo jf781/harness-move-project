@@ -99,7 +99,7 @@ func (c ProjectContext) Copy() error {
 
 	newProject := &model.Project{
 		Identifier:    c.targetProject,
-		Name:          c.targetProject,
+		Name:          sourceProject.Name,
 		Color:         sourceProject.Color,
 		Modules:       sourceProject.Modules,
 		Description:   sourceProject.Description,
