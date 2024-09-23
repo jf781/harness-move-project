@@ -1,11 +1,12 @@
-module github.com/jf781/harness-move-project
+module harness-copy-project
 
-go 1.19
+go 1.22.1
 
 require (
-	github.com/fatih/color v1.16.0
-	github.com/go-resty/resty/v2 v2.14.0
-	github.com/schollz/progressbar/v3 v3.14.2
+	github.com/fatih/color v1.17.0
+	github.com/go-resty/resty/v2 v2.15.2
+	github.com/jf781/harness-move-project v0.1.7
+	github.com/schollz/progressbar/v3 v3.16.0
 	github.com/stretchr/testify v1.9.0
 	github.com/urfave/cli/v2 v2.27.4
 	go.uber.org/zap v1.27.0
@@ -23,7 +24,7 @@ require (
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
-	golang.org/x/term v0.22.0 // indirect
+	golang.org/x/sys v0.25.0 // indirect
+	golang.org/x/term v0.24.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

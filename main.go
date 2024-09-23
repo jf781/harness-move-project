@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/jf781/harness-move-project/operation"
-	"github.com/jf781/harness-move-project/services"
+	"harness-copy-project/operation"
+	"harness-copy-project/services"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
