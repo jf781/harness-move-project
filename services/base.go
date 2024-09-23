@@ -63,14 +63,18 @@ func createYamlQuotes(yaml, sourceOrg, sourceProject, targetOrg, targetProject s
 
 func updateYaml(yaml, sourceOrg, sourceProject, targetOrg, targetProject string) string {
 	// used to only update a YAML pipeline. Will NOT add the orgIdentifier and projectIdentifier if not found
-	out := yaml 
-	
-	if strings.Contains(out, "\"orgIdentifier\": \""+sourceOrg+"\"") {
-		out = strings.ReplaceAll(out, "\"orgIdentifier\": \""+sourceOrg+"\"", "\"orgIdentifier\": \""+targetOrg+"\"")
+	var out string
+	// var orgIdOut string
+	// var projIdOut string
+		
+	if strings.Contains(yaml, "\"orgIdentifier\": \""+sourceOrg+"\"") || strings.Contains(yaml, "orgIdentifier: "+sourceOrg) {
+		orgIdOut := strings.ReplaceAll(yaml, "\"orgIdentifier\": \""+sourceOrg+"\"", "\"orgIdentifier\": \""+targetOrg+"\"")
+		out = strings.ReplaceAll(orgIdOut, "orgIdentifier: "+sourceOrg, "orgIdentifier: "+targetOrg)
 	}
 
-	if strings.Contains(out, "\"projectIdentifier\": \""+sourceProject+"\"") {
-		out = strings.ReplaceAll(out, "\"projectIdentifier\": \""+sourceProject+"\"", "\"projectIdentifier\": \""+targetProject+"\"")
+	if strings.Contains(yaml, "\"projectIdentifier\": \""+sourceProject+"\"" ) || strings.Contains(yaml, "projectIdentifier: "+sourceProject) {
+		projIdOut := strings.ReplaceAll(out, "projectIdentifier: "+sourceProject, "projectIdentifier: "+targetProject)
+		out = strings.ReplaceAll(projIdOut, "\"projectIdentifier\": \""+sourceProject+"\"", "\"projectIdentifier\": \""+targetProject+"\"")
 	}
 
 	return out
