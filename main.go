@@ -231,7 +231,7 @@ func run(c *cli.Context) error {
 				fmt.Println(color.RedString("Error encountered while moving project %v: %v ", cp.Target.Project, errs))
 			}
 			
-			fmt.Println(color.GreenString("---------------------------------"))
+			fmt.Println(color.GreenString("---------------------------------\n\n"))
 
 			// Assuming you have a zap logger instance initialized as 'logger'
 
