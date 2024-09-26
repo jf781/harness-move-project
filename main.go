@@ -14,7 +14,7 @@ import (
 )
 
 var Version = "development"
-
+var errs []error
 var logger *zap.Logger
 
 func main() {
@@ -101,6 +101,7 @@ func main() {
 }
 
 func run(c *cli.Context) error {
+
 	importCsv := operation.ImportCSV{
 		CsvPath: c.String("csvPath"),
 	}
@@ -162,7 +163,9 @@ func run(c *cli.Context) error {
 				zap.String("Target Project", cp.Target.Project),
 				zap.Error(err),
 			)
-			return err
+			errs = append(errs, err)
+			continue
+
 		} else {
 			fmt.Println(color.GreenString("Project '%v' has been copied to '%v'", cp.Source.Project, cp.Target.Project))
 			fmt.Println(color.GreenString("Connectors Total: %v ", services.GetConnectorsTotal()))
@@ -223,6 +226,12 @@ func run(c *cli.Context) error {
 
 			fmt.Println(color.GreenString("Variables Total: %v ", services.GetVariablesTotal()))
 			fmt.Println(color.GreenString("Variables Moved: %v ", services.GetVariablesMoved()))
+
+			if len(errs) > 0 {
+				fmt.Println(color.RedString("Error encountered while moving project %v: %v ", cp.Target.Project, errs))
+			}
+			
+			fmt.Println(color.GreenString("---------------------------------"))
 
 			// Assuming you have a zap logger instance initialized as 'logger'
 
