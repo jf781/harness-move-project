@@ -9,7 +9,7 @@
 *.dylib
 bin/
 harness-move-project
-
+harness-copy-project
 # Test binary, built with `go test -c`
 *.test
 
