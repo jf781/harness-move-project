@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/jf781/harness-move-project/model"
+	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
 )
@@ -65,7 +65,7 @@ func (c PipelineContext) Copy() error {
 				zap.Error(err),
 			)
 		} else {
-			IncrementConnectorsMoved()
+			IncrementPipelinesMoved()
 		}
 		bar.Add(1)
 	}
