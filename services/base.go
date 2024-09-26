@@ -7,7 +7,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-resty/resty/v2"
-	"github.com/jf781/harness-move-project/model"
+	"harness-copy-project/model"
 )
 
 // const BaseURL = "https://app.harness.io"
