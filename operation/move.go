@@ -1,11 +1,8 @@
 package operation
 
 import (
-	"fmt"
-
-	"github.com/fatih/color"
 	"github.com/go-resty/resty/v2"
-	"github.com/jf781/harness-move-project/services"
+	"harness-copy-project/services"
 	"go.uber.org/zap"
 )
 
@@ -90,6 +87,5 @@ func (o *Copy) Exec() error {
 		}
 	}
 
-	fmt.Println(color.GreenString("Done"))
 	return nil
 }
