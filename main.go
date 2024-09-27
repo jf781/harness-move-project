@@ -101,7 +101,6 @@ func main() {
 }
 
 func run(c *cli.Context) error {
-
 	importCsv := operation.ImportCSV{
 		CsvPath: c.String("csvPath"),
 	}
@@ -165,7 +164,6 @@ func run(c *cli.Context) error {
 			)
 			errs = append(errs, err)
 			continue
-
 		} else {
 			fmt.Println(color.GreenString("Project '%v' has been copied to '%v'", cp.Source.Project, cp.Target.Project))
 			fmt.Println(color.GreenString("Connectors Total: %v ", services.GetConnectorsTotal()))
@@ -230,10 +228,8 @@ func run(c *cli.Context) error {
 			if len(errs) > 0 {
 				fmt.Println(color.RedString("Error encountered while moving project %v: %v ", cp.Target.Project, errs))
 			}
-			
-			fmt.Println(color.GreenString("---------------------------------\n\n"))
 
-			// Assuming you have a zap logger instance initialized as 'logger'
+			fmt.Println(color.GreenString("---------------------------------\n\n"))
 
 			logger.Info("Project Migration Status:",
 				zap.Int("ConnectorsTotal", services.GetConnectorsTotal()),
