@@ -75,7 +75,7 @@ func (c TriggerContext) Copy() error {
 
 		t.OrgIdentifier = c.targetOrg
 		t.ProjectIdentifier = c.targetProject
-		newYaml := createYaml(t.YAML, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+		newYaml := updateYaml(t.YAML, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
 		t.YAML = newYaml
 
 		err = c.api.createPipelineTrigger(t, c.logger)
