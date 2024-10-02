@@ -66,21 +66,19 @@ func updateYaml(yaml, sourceOrg, sourceProject, targetOrg, targetProject string)
 	var out string
 	// var orgIdOut string
 	// var projIdOut string
-		
+
 	if strings.Contains(yaml, "\"orgIdentifier\": \""+sourceOrg+"\"") || strings.Contains(yaml, "orgIdentifier: "+sourceOrg) {
 		orgIdOut := strings.ReplaceAll(yaml, "\"orgIdentifier\": \""+sourceOrg+"\"", "\"orgIdentifier\": \""+targetOrg+"\"")
 		out = strings.ReplaceAll(orgIdOut, "orgIdentifier: "+sourceOrg, "orgIdentifier: "+targetOrg)
 	}
 
-	if strings.Contains(yaml, "\"projectIdentifier\": \""+sourceProject+"\"" ) || strings.Contains(yaml, "projectIdentifier: "+sourceProject) {
+	if strings.Contains(yaml, "\"projectIdentifier\": \""+sourceProject+"\"") || strings.Contains(yaml, "projectIdentifier: "+sourceProject) {
 		projIdOut := strings.ReplaceAll(out, "projectIdentifier: "+sourceProject, "projectIdentifier: "+targetProject)
 		out = strings.ReplaceAll(projIdOut, "\"projectIdentifier\": \""+sourceProject+"\"", "\"projectIdentifier\": \""+targetProject+"\"")
 	}
 
 	return out
 }
-
-
 
 func handleErrorResponse(resp *resty.Response) error {
 	result := model.ErrorResponse{}
@@ -106,4 +104,15 @@ func reportFailed(failed []string, description string) {
 		fmt.Println(color.RedString(fmt.Sprintf("Failed %s %d", description, len(failed))))
 		fmt.Println(color.RedString(strings.Join(failed, "\n")))
 	}
+}
+
+func ValidateCopy(booleans []bool) bool {
+	for _, b := range booleans {
+		if !b {
+			// false value not found
+			return false
+		}
+	}
+	// false value found
+	return true
 }
