@@ -135,12 +135,12 @@ type ConnectorCredential struct {
 }
 
 type ConnectorCredentialSpec struct {
-	ApplicationID string              `json:"applicationId,omitempty"`
-	TenantID      string              `json:"tenantId,omitempty"`
+	ApplicationID string               `json:"applicationId,omitempty"`
+	TenantID      string               `json:"tenantId,omitempty"`
 	Auth          *ConnectorFluffyAuth `json:"auth,omitempty"`
-	EndpointUrl   string              `json:"endpointUrl,omitempty"`
-	UsernameRef   string              `json:"usernameRef,omitempty"`
-	PasswordRef   string              `json:"passwordRef,omitempty"`
+	EndpointUrl   string               `json:"endpointUrl,omitempty"`
+	UsernameRef   string               `json:"usernameRef,omitempty"`
+	PasswordRef   string               `json:"passwordRef,omitempty"`
 }
 
 type ConnectorFluffyAuth struct {
