@@ -124,7 +124,7 @@ func (api *ApiRequest) listConnectors(org, project string, logger *zap.Logger) (
 
 	connectors := []*model.ConnectorContent{}
 	for _, c := range result.Data.Content {
-		if !c.HarnessManaged && c.Status.Status == "SUCCESS" {
+		if !c.HarnessManaged {
 			newConnectors := c
 			connectors = append(connectors, &newConnectors)
 		} else {

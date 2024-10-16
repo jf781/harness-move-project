@@ -95,7 +95,7 @@ type ConnectorSpec struct {
 	BranchName     *string           `json:"branchName,omitempty"`
 	IsAnonymous    *bool             `json:"isAnonymous,omitempty"`
 	ConnectionType *string           `json:"connectionType,omitempty"`
-	Spec           *ConnectorGitSpec `json:"spec,omitempty"`
+	Spec           *ConnectorSpecificSpec `json:"spec,omitempty"`
 }
 
 type ConnectorAPIAccess struct {
@@ -185,8 +185,9 @@ type ConnectorStatusError struct {
 	Code    int64  `json:"code"`
 }
 
-type ConnectorGitSpec struct {
+type ConnectorSpecificSpec struct {
 	Username    string `json:"username,omitempty"`
+	EndpointUrl string `json:"endpointUrl,omitempty"`
 	UsernameRef string `json:"usernameRef,omitempty"`
 	PasswordRef string `json:"tokenRef"`
 }
