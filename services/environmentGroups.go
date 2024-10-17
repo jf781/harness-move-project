@@ -61,7 +61,7 @@ func (c EnvGroupContext) Copy() error {
 
 		e := model.CreateEnvGroup{}
 
-		newYaml := createYamlQuotes(eg.EnvGroup.YAML, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+		newYaml := updateYaml(eg.EnvGroup.YAML, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
 		e.OrgIdentifier = c.targetOrg
 		e.ProjectIdentifier = c.targetProject
 		e.Color = eg.EnvGroup.Color
