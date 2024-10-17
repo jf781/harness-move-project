@@ -42,39 +42,48 @@ func createYaml(yaml, sourceOrg, sourceProject, targetOrg, targetProject string)
 	return out
 }
 
-func createYamlQuotes(yaml, sourceOrg, sourceProject, targetOrg, targetProject string) string {
-	// used to update a YAML pipeline if quotes are defined.  Will add the orgIdentifier and projectIdentifier if not found
-	var out string
-
-	if strings.Contains(yaml, "orgIdentifier: ") {
-		out = strings.ReplaceAll(yaml, "orgIdentifier: \""+sourceOrg+"\"", "orgIdentifier: \""+targetOrg+"\"")
-	} else {
-		out = fmt.Sprintln(yaml, " orgIdentifier:", targetOrg)
-	}
-
-	if strings.Contains(yaml, "projectIdentifier: ") {
-		out = strings.ReplaceAll(out, "projectIdentifier: \""+sourceProject, "projectIdentifier: \""+targetProject)
-	} else {
-		out = fmt.Sprintln(yaml, " projectIdentifier:", targetProject)
-	}
-
-	return out
-}
-
 func updateYaml(yaml, sourceOrg, sourceProject, targetOrg, targetProject string) string {
-	// used to only update a YAML pipeline. Will NOT add the orgIdentifier and projectIdentifier if not found
-	var out string
-	// var orgIdOut string
-	// var projIdOut string
+	// Initialize out with the original YAML content
+	out := yaml
 
-	if strings.Contains(yaml, "\"orgIdentifier\": \""+sourceOrg+"\"") || strings.Contains(yaml, "orgIdentifier: "+sourceOrg) {
-		orgIdOut := strings.ReplaceAll(yaml, "\"orgIdentifier\": \""+sourceOrg+"\"", "\"orgIdentifier\": \""+targetOrg+"\"")
-		out = strings.ReplaceAll(orgIdOut, "orgIdentifier: "+sourceOrg, "orgIdentifier: "+targetOrg)
+	// Handle JSON-style with quoted key and quoted value for orgIdentifier
+	if strings.Contains(yaml, "\"orgIdentifier\": \""+sourceOrg+"\"") {
+		out = strings.ReplaceAll(out, "\"orgIdentifier\": \""+sourceOrg+"\"", "\"orgIdentifier\": \""+targetOrg+"\"")
 	}
 
-	if strings.Contains(yaml, "\"projectIdentifier\": \""+sourceProject+"\"") || strings.Contains(yaml, "projectIdentifier: "+sourceProject) {
-		projIdOut := strings.ReplaceAll(out, "projectIdentifier: "+sourceProject, "projectIdentifier: "+targetProject)
-		out = strings.ReplaceAll(projIdOut, "\"projectIdentifier\": \""+sourceProject+"\"", "\"projectIdentifier\": \""+targetProject+"\"")
+	// Handle JSON-style with quoted key and unquoted value for orgIdentifier
+	if strings.Contains(yaml, "\"orgIdentifier\": "+sourceOrg) {
+		out = strings.ReplaceAll(out, "\"orgIdentifier\": "+sourceOrg, "\"orgIdentifier\": "+targetOrg)
+	}
+
+	// Handle YAML-style with unquoted key and quoted value for orgIdentifier
+	if strings.Contains(yaml, "orgIdentifier: \""+sourceOrg+"\"") {
+		out = strings.ReplaceAll(out, "orgIdentifier: \""+sourceOrg+"\"", "orgIdentifier: \""+targetOrg+"\"")
+	}
+
+	// Handle YAML-style with unquoted key and unquoted value for orgIdentifier
+	if strings.Contains(yaml, "orgIdentifier: "+sourceOrg) {
+		out = strings.ReplaceAll(out, "orgIdentifier: "+sourceOrg, "orgIdentifier: "+targetOrg)
+	}
+
+	// Handle JSON-style with quoted key and quoted value for projectIdentifier
+	if strings.Contains(yaml, "\"projectIdentifier\": \""+sourceProject+"\"") {
+		out = strings.ReplaceAll(out, "\"projectIdentifier\": \""+sourceProject+"\"", "\"projectIdentifier\": \""+targetProject+"\"")
+	}
+
+	// Handle JSON-style with quoted key and unquoted value for projectIdentifier
+	if strings.Contains(yaml, "\"projectIdentifier\": "+sourceProject) {
+		out = strings.ReplaceAll(out, "\"projectIdentifier\": "+sourceProject, "\"projectIdentifier\": "+targetProject)
+	}
+
+	// Handle YAML-style with unquoted key and quoted value for projectIdentifier
+	if strings.Contains(yaml, "projectIdentifier: \""+sourceProject+"\"") {
+		out = strings.ReplaceAll(out, "projectIdentifier: \""+sourceProject+"\"", "projectIdentifier: \""+targetProject+"\"")
+	}
+
+	// Handle YAML-style with unquoted key and unquoted value for projectIdentifier
+	if strings.Contains(yaml, "projectIdentifier: "+sourceProject) {
+		out = strings.ReplaceAll(out, "projectIdentifier: "+sourceProject, "projectIdentifier: "+targetProject)
 	}
 
 	return out
