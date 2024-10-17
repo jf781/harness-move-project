@@ -306,6 +306,8 @@ func run(c *cli.Context) error {
 				zap.Int("TargetsMoved", services.GetTargetsMoved()),
 				zap.Int("TemplatesTotal", services.GetTemplatesTotal()),
 				zap.Int("TemplatesMoved", services.GetTemplatesMoved()),
+				zap.Int("TriggersTotal", services.GetTriggersTotal()),
+				zap.Int("TriggersMoved", services.GetTriggersMoved()),
 				zap.Int("UserGroupsTotal", services.GetUserGroupsTotal()),
 				zap.Int("UserGroupsMoved", services.GetUserGroupsMoved()),
 				zap.Int("UsersTotal", services.GetUsersTotal()),
