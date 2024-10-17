@@ -128,7 +128,7 @@ func (api *ApiRequest) listConnectors(org, project string, logger *zap.Logger) (
 			newConnectors := c
 			connectors = append(connectors, &newConnectors)
 		} else {
-			logger.Warn("Skipping connector because it is managed by Harness or status is a failed state.",
+			logger.Warn("Skipping connector because it is managed by Harness.",
 				zap.String("connector", c.Connector.Name),
 				zap.String("status", c.Status.Status),
 				zap.Bool("harnessManaged", c.HarnessManaged),
