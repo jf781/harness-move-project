@@ -247,6 +247,10 @@ func run(c *cli.Context) error {
 			fmt.Println(color.GreenString("Variables Moved: %v ", services.GetVariablesMoved()))
 			projectErr = append(projectErr, services.ConfirmSuccessfulCopy(services.GetVariablesTotal(), services.GetVariablesMoved()))
 
+			fmt.Println(color.GreenString("Triggers Total: %v ", services.GetTriggersTotal()))
+			fmt.Println(color.GreenString("Triggers Moved: %v ", services.GetTriggersMoved()))
+			projectErr = append(projectErr, services.ConfirmSuccessfulCopy(services.GetTriggersTotal(), services.GetTriggersMoved()))
+
 			if services.ValidateCopy(projectErr) {
 				if err := cp.Freeze(); err != nil {
 					logger.Error("Failed to Copy Project",
