@@ -51,34 +51,34 @@ func (o *Copy) Exec() error {
 
 	if o.Config.CopyCD || o.Config.CopyFF {
 		operations = append(operations, services.NewConnectorOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewEnvironmentOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewEnvGroupOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewEnvironmentOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewEnvGroupOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
 	}
 
 	if o.Config.CopyCD {
-		operations = append(operations, services.NewVariableOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewFileStoreOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewInfrastructureOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewServiceOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewServiceOverrideOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewTemplateOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewPipelineOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewInputsetOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		// // operations = append(operations, services.NewSecretOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project))
-		operations = append(operations, services.NewTagOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewUserScopeOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewUserGroupOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewServiceAccountOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewRoleOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewResourceGroupOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewRoleAssignmentOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewTriggerOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewVariableOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewFileStoreOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewInfrastructureOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewServiceOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewServiceOverrideOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewTemplateOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewPipelineOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewInputsetOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// // // operations = append(operations, services.NewSecretOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project))
+		// operations = append(operations, services.NewTagOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewUserScopeOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewUserGroupOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewServiceAccountOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewRoleOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewResourceGroupOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewRoleAssignmentOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewTriggerOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
 	}
 
 	if o.Config.CopyFF {
-		operations = append(operations, services.NewFeatureFlagOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewTargets(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
-		operations = append(operations, services.NewTargetGroups(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewFeatureFlagOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewTargets(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		// operations = append(operations, services.NewTargetGroups(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
 	}
 
 	for _, op := range operations {
