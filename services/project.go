@@ -36,7 +36,7 @@ func (api *ApiRequest) ValidateProject(org, project string, logger *zap.Logger) 
 		return err
 	}
 	if resp.IsError() {
-		logger.Warn("Unable to find existing project in organization",
+		logger.Info("Unable to find existing project in organization",
 			zap.String("response",
 				resp.String(),
 			),
