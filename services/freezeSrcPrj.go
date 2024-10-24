@@ -3,11 +3,11 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"harness-copy-project/model"
-	"time"
 )
 
 const FREEZEPROJECT = "/ng/api/freeze"
@@ -68,7 +68,6 @@ func (c FreezeSourceProjectContext) Copy() error {
 
 	freezeYaml, err := yaml.Marshal(&freeze)
 	freezeRequest := string(freezeYaml)
-	fmt.Println(freezeRequest)
 
 	if err != nil {
 		c.logger.Error("Failed to marshal freeze request",
@@ -103,8 +102,6 @@ func (c FreezeSourceProjectContext) Copy() error {
 }
 
 func (api *ApiRequest) createProjectFreeze(freeze *string, org string, project string, logger *zap.Logger) (*string, error) {
-
-	api.Client.SetDebug(true)
 
 	logger.Info("Creating project freeze",
 		zap.String("org", org),
