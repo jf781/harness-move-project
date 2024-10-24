@@ -141,15 +141,8 @@ func (api *ApiRequest) listPipelineTriggers(piplineId, org, project string, logg
 
 	triggers := []*model.TriggerContent{}
 	for _, c := range result.Data.Content {
-		if c.TriggerStatus.Status == "SUCCESS" {
-			newTrigger := c
-			triggers = append(triggers, &newTrigger)
-		} else {
-			logger.Warn("Skipping trigger because the status is not active",
-				zap.String("trigger", c.Name),
-				zap.String("t", c.TriggerStatus.Status),
-			)
-		}
+		newTrigger := c
+		triggers = append(triggers, &newTrigger)
 	}
 
 	return triggers, nil
