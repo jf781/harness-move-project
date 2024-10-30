@@ -34,7 +34,7 @@ func (c FreezeSourceProjectContext) Copy() error {
 	timeZone, _ := time.LoadLocation("America/Los_Angeles")
 	currentTime := time.Now().In(timeZone)
 
-	fmt.Printf("Freezing source project %s\n", c.sourceProject)
+	fmt.Printf("Freezing source project: '%s'. \n", c.sourceProject)
 
 	c.logger.Info("Freezing project",
 		zap.String("project", c.sourceProject),
@@ -78,6 +78,13 @@ func (c FreezeSourceProjectContext) Copy() error {
 
 	freezeId, err := c.api.createProjectFreeze(&freezeRequest, c.sourceOrg, c.sourceProject, c.logger)
 
+	if *freezeId == "duplicate" {
+		c.logger.Info("Duplicate project freeze",
+			zap.String("project", c.sourceProject),
+		)
+		fmt.Printf("Project '%s' is already frozen. \n", c.sourceProject)
+		return nil
+	}
 	if freezeId == nil {
 		return fmt.Errorf("failed to create freeze for project %s", c.sourceProject)
 	}
@@ -127,23 +134,30 @@ func (api *ApiRequest) createProjectFreeze(freeze *string, org string, project s
 		return nil, err
 	}
 	if resp.IsError() {
-		logger.Error("Error response from API when creating project freeze",
-			zap.String("response",
-				resp.String(),
-			),
-		)
+		var errorResponse map[string]interface{}
+		if err := json.Unmarshal(resp.Body(), &errorResponse); err == nil {
+			if code, ok := errorResponse["code"].(string); ok && code == "RESOURCE_ALREADY_EXISTS" {
+				// Log as a warning and skip the error
+				logger.Info("Duplicate project freeze.",
+					zap.String("project", project),
+				)
+				freezeId := "duplicate"
+				return &freezeId , nil
+			}
+		} else {
+			logger.Error(
+				"Error response from API when setting project freeze status ",
+				zap.String("project", project),
+				zap.String("response",
+					resp.String(),
+				),
+			)
+		}
 		return nil, handleErrorResponse(resp)
 	}
 
 	result := model.FreezeResponse{}
 	err = json.Unmarshal(resp.Body(), &result)
-	if err != nil {
-		logger.Error("Failed to parse response from API",
-			zap.Error(err),
-		)
-		return nil, err
-	}
-
 	if result.Status != "SUCCESS" {
 		logger.Error("Failed to parse response from API",
 			zap.Error(err),
@@ -183,24 +197,13 @@ func (api *ApiRequest) enableProjectFreeze(freezeId *[]string, org string, proje
 		return err
 	}
 	if resp.IsError() {
-		var errorResponse map[string]interface{}
-		if err := json.Unmarshal(resp.Body(), &errorResponse); err == nil {
-			if code, ok := errorResponse["code"].(string); ok && code == "DUPLICATE_FIELD" {
-				// Log as a warning and skip the error
-				logger.Info("Duplicate project freeze.",
-					zap.String("project", project),
-				)
-				return nil
-			}
-		} else {
-			logger.Error(
-				"Error response from API when setting project freeze status ",
-				zap.String("project", project),
-				zap.String("response",
-					resp.String(),
-				),
-			)
-		}
+		logger.Error(
+			"Error response from API when setting project freeze status ",
+			zap.String("project", project),
+			zap.String("response",
+				resp.String(),
+			),
+		)
 		return handleErrorResponse(resp)
 	}
 
