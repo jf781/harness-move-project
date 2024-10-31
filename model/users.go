@@ -7,9 +7,9 @@ type GetUserResponse struct {
 }
 
 type GetCurrentUserResponse struct {
-	Status        string      `json:"status"`
-	Data          User        `json:"data"`
-	CorrelationID string      `json:"correlationId"`
+	Status        string `json:"status"`
+	Data          User   `json:"data"`
+	CorrelationID string `json:"correlationId"`
 }
 
 type RemoveUserResponse struct {
@@ -18,7 +18,6 @@ type RemoveUserResponse struct {
 	MetaData      interface{} `json:"metaData"`
 	CorrelationID string      `json:"correlationId"`
 }
-
 
 type GetUserData struct {
 	TotalPages    int64         `json:"totalPages"`

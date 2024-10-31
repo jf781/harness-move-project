@@ -3,14 +3,14 @@ package services
 import (
 	"encoding/json"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const LISTUSER = "/ng/api/user/aggregate"
 const ADDUSER = "/ng/api/user/users"
-const CURRENTUSER  = "/ng/api/user/currentUser"
+const CURRENTUSER = "/ng/api/user/currentUser"
 const REMOVEUSER = "/ng/api/user"
 
 type UserScopeContext struct {
@@ -231,8 +231,6 @@ func (api *ApiRequest) addUserToScope(user *model.UserEmail, logger *zap.Logger)
 
 func (api *ApiRequest) getCurrentUserInfo(org, project string, logger *zap.Logger) (*model.User, error) {
 
-	api.Client.SetDebug(true)
-
 	logger.Info("Fetching current user info",
 		zap.String("org", org),
 		zap.String("project", project),
@@ -276,7 +274,7 @@ func (api *ApiRequest) getCurrentUserInfo(org, project string, logger *zap.Logge
 	return &currentUser, nil
 }
 
-func (api *ApiRequest) RemoveCurrentUserAccess (user model.User, org, project string, logger *zap.Logger) (error) {
+func (api *ApiRequest) RemoveCurrentUserAccess(user model.User, org, project string, logger *zap.Logger) error {
 
 	logger.Info("Removing user access",
 		zap.String("user", user.Name),
@@ -321,4 +319,3 @@ func (api *ApiRequest) RemoveCurrentUserAccess (user model.User, org, project st
 
 	return nil
 }
-
