@@ -53,6 +53,7 @@ func (o *Copy) Exec() error {
 		operations = append(operations, services.NewConnectorOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
 		// operations = append(operations, services.NewEnvironmentOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
 		// operations = append(operations, services.NewEnvGroupOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
+		operations = append(operations, services.RemoveCurrentUserOperation(&api, o.Target.Org, o.Target.Project, o.Config.Logger))
 	}
 
 	if o.Config.CopyCD {
