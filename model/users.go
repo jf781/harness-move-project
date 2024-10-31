@@ -6,6 +6,20 @@ type GetUserResponse struct {
 	CorrelationID string      `json:"correlationId"`
 }
 
+type GetCurrentUserResponse struct {
+	Status        string      `json:"status"`
+	Data          User        `json:"data"`
+	CorrelationID string      `json:"correlationId"`
+}
+
+type RemoveUserResponse struct {
+	Status        string      `json:"status"`
+	Data          bool        `json:"data"`
+	MetaData      interface{} `json:"metaData"`
+	CorrelationID string      `json:"correlationId"`
+}
+
+
 type GetUserData struct {
 	TotalPages    int64         `json:"totalPages"`
 	TotalItems    int64         `json:"totalItems"`
