@@ -50,14 +50,14 @@ func (c UserGroupContext) Copy() error {
 
 	for _, g := range groups {
 
+		IncrementUserGroupsTotal()
+
 		c.logger.Info("Processing user group",
 			zap.String("user group", g.Name),
 			zap.String("sourceProject", c.sourceProject),
 		)
 
 		for i := range g.Users {
-
-			IncrementUserGroupsTotal()
 
 			user := &model.UserGroupLookup{
 				Identifier:        g.Users[i],
