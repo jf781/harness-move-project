@@ -33,19 +33,43 @@ Execute the operation running at the following command in your terminal that wil
   --baseUrl https://app.harness.io
 ```
 
-By default it will only create the target project in the target organization. It will not copy any of the components to the target organization.  
+## Command Line Parameters
 
-You have the option to copy only Continuous Delivery or Feature Flag components, or both setting the follow parameters.  You can set both to true if you want to copy all components. 
+- `--apiToken` - The API token to authenticate with Harness.
+- `--accountId` - The account identifier to authenticate with Harness.
+- `--csvPath` - The path to the CSV file.
+- `--baseUrl` - The base URL of the Harness instance.
+- `--copyCDComponents` - Copy Continuous Delivery components. Default is `false`.  This will copy items like Pipelines, Services, Environments, etc.
+- `--copyFFComponents` - Copy Feature Flag components. Default is `false`.  This will copy items like Feature Flags, Target Groups, etc.
+- `--showProgressBar` - Show a progress bar for the various components as they are copied to the target project. Default is `false`.
+
+If you do not provide the `--copyCDComponents` or `--copyFFComponents` flags, the tool will only create the target project in the target organization. It will not copy any of the components to the target organization.
+
+### Examples
+
+In this example we will copy the CD components from the source project to the target project.
 
 ```sh
---copyCDComponents true
+./harness-move-project \
+  --apiToken <SAT_OR_PAT> \
+  --accountId <account_identifier> \
+  --csvPath ./exampleCsvFile.csv \
+  --baseUrl https://app.harness.io \
+  --copyCDComponents
 ```
+
+In this example we will copy the FF components from the source project to the target project and show the progress bar as items are copied.
 
 ```sh
---copyFFComponents true
+./harness-move-project \
+  --apiToken <SAT_OR_PAT> \
+  --accountId <account_identifier> \
+  --csvPath ./exampleCsvFile.csv \
+  --baseUrl https://app.harness.io \
+  --copyFFComponents \
+  --showProgressBar
 ```
 
-When the tool try to create and entity on target project that the same identifier already exist, it silently ignores the error and continues the execution. Using that strategy you can run it multiple times without side effects.
 
 ## CSV File
 
