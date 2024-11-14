@@ -317,7 +317,7 @@ func run(c *cli.Context) error {
 			)
 		}
 
-		logger.Info(fmt.Sprintf("Project '%v' has been copied to '%v'", cp.Source.Project, cp.Target.Project))
+		logger.Info(fmt.Sprintf("Project '%v' has been copied to org: '%v' \n", cp.Source.Project, cp.Target.Org))
 
 		services.ResetAllCounters()
 
