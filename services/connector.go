@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"harness-copy-project/model"
-	"github.com/schollz/progressbar/v3"
+	// "github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
 )
 
@@ -46,7 +46,7 @@ func (c ConnectorContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(connectors)), "Connectors    ")
+	// bar := progressbar.Default(int64(len(connectors)), "Connectors    ")
 
 	for _, cn := range connectors {
 
@@ -72,9 +72,9 @@ func (c ConnectorContext) Copy() error {
 			IncrementConnectorsMoved()
 		}
 
-		bar.Add(1)
+		// bar.Add(1)
 	}
-	bar.Finish()
+	// bar.Finish()
 
 	return nil
 }
