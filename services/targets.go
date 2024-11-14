@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const TARGETS = "/cf/admin/targets"
@@ -17,7 +17,7 @@ type TargetContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
-	showPB				bool
+	showPB        bool
 }
 
 func NewTargets(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) TargetContext {
@@ -28,7 +28,7 @@ func NewTargets(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProj
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
-		showPB: 			 showPB,
+		showPB:        showPB,
 	}
 }
 

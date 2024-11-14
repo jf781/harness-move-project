@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const ROLE = "/authz/api/roles"
@@ -17,7 +17,7 @@ type RoleContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
-	showPB 			  bool
+	showPB        bool
 }
 
 func NewRoleOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) RoleContext {

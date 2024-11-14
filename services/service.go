@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const LIST_SERVICES = "/ng/api/servicesV2"
@@ -18,7 +18,7 @@ type ServiceContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
-	showPB				bool
+	showPB        bool
 }
 
 func NewServiceOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) ServiceContext {
@@ -29,7 +29,7 @@ func NewServiceOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, t
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
-		showPB: 			 showPB,
+		showPB:        showPB,
 	}
 }
 

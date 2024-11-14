@@ -2,11 +2,10 @@ package services
 
 import (
 	"encoding/json"
-	// "fmt"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const CONNECTORLOOKUP = "/ng/api/connectors/listV2"

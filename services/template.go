@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const LIST_TEMPLATES_ENDPOINT = "/v1/orgs/{org}/projects/{project}/templates"
@@ -48,7 +48,7 @@ func (c TemplateContext) Copy() error {
 		)
 		return err
 	}
-	
+
 	var bar *progressbar.ProgressBar
 
 	if c.showPB {

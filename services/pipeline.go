@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const LIST_PIPELINES = "/pipeline/api/pipelines/list"
@@ -20,7 +20,7 @@ type PipelineContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
-	showPB				bool
+	showPB        bool
 }
 
 func NewPipelineOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) PipelineContext {
@@ -31,7 +31,7 @@ func NewPipelineOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, 
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
-		showPB: 			 showPB,
+		showPB:        showPB,
 	}
 }
 

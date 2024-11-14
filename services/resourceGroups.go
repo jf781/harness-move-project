@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const RESOURCEGROUP = "/resourcegroup/api/v2/resourcegroup"
@@ -17,7 +17,7 @@ type ResourceGroupContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
-	showPB				bool
+	showPB        bool
 }
 
 func NewResourceGroupOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) ResourceGroupContext {
@@ -28,7 +28,7 @@ func NewResourceGroupOperation(api *ApiRequest, sourceOrg, sourceProject, target
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
-		showPB: 			 showPB,
+		showPB:        showPB,
 	}
 }
 

@@ -142,7 +142,7 @@ func (api *ApiRequest) createProjectFreeze(freeze *string, org string, project s
 					zap.String("project", project),
 				)
 				freezeId := "duplicate"
-				return &freezeId , nil
+				return &freezeId, nil
 			}
 		} else {
 			logger.Error(

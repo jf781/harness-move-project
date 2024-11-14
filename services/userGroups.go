@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const USERGROUP = "/ng/api/user-groups"
@@ -49,7 +49,7 @@ func (c UserGroupContext) Copy() error {
 	}
 
 	var bar *progressbar.ProgressBar
-	
+
 	if c.showPB {
 		bar = progressbar.Default(int64(len(groups)), "User Groups    ")
 	}
@@ -96,7 +96,7 @@ func (c UserGroupContext) Copy() error {
 		} else {
 			IncrementUserGroupsMoved()
 		}
-		if c.showPB{
+		if c.showPB {
 			bar.Add(1)
 		}
 	}

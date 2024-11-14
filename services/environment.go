@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 type EnvironmentContext struct {
@@ -15,7 +15,7 @@ type EnvironmentContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
-	showPB				bool
+	showPB        bool
 }
 
 func NewEnvironmentOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) EnvironmentContext {
@@ -26,7 +26,7 @@ func NewEnvironmentOperation(api *ApiRequest, sourceOrg, sourceProject, targetOr
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
-		showPB: 			showPB,
+		showPB:        showPB,
 	}
 }
 

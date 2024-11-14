@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"harness-copy-project/model"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const GET_PROJECT = "/ng/api/projects/{identifier}"

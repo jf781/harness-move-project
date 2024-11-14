@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const ENVGROUPLIST = "/ng/api/environmentGroup/list"
@@ -49,7 +49,7 @@ func (c EnvGroupContext) Copy() error {
 		return err
 	}
 
-	var bar  *progressbar.ProgressBar
+	var bar *progressbar.ProgressBar
 
 	if c.showPB {
 		bar = progressbar.Default(int64(len(envGroups)), "Environment Groups:    ")

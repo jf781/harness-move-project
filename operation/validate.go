@@ -2,12 +2,12 @@ package operation
 
 import (
 	"fmt"
-	"harness-copy-project/services"
-	"go.uber.org/zap"
 	"github.com/fatih/color"
+	"go.uber.org/zap"
+	"harness-copy-project/services"
 )
 
-func ValidateAndLogCopy (cp Copy, logger *zap.Logger) error {
+func ValidateAndLogCopy(cp Copy, logger *zap.Logger) error {
 	var projectErr []bool
 
 	fmt.Println(color.GreenString("Project '%v' has been copied to '%v'", cp.Source.Project, cp.Target.Project))

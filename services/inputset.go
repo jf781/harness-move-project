@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 type InputsetContext struct {
@@ -16,7 +16,7 @@ type InputsetContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
-	showPB				bool
+	showPB        bool
 }
 
 func NewInputsetOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) InputsetContext {
@@ -27,7 +27,7 @@ func NewInputsetOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, 
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
-		showPB: 			 showPB,
+		showPB:        showPB,
 	}
 }
 

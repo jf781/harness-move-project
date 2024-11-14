@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 var bar *progressbar.ProgressBar
@@ -49,7 +49,6 @@ func (c FileStoreContext) Copy() error {
 	if c.showPB {
 		bar = progressbar.Default(int64(len(nodes)), "File Store")
 	}
-
 
 	var failures []string
 

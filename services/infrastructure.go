@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const INFRASTRUCTURE = "/ng/api/infrastructures"
@@ -17,7 +17,7 @@ type InfrastructureContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
-	showPB				bool
+	showPB        bool
 }
 
 func NewInfrastructureOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) InfrastructureContext {
@@ -28,7 +28,7 @@ func NewInfrastructureOperation(api *ApiRequest, sourceOrg, sourceProject, targe
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
-		showPB: 			 showPB,
+		showPB:        showPB,
 	}
 }
 
@@ -46,12 +46,12 @@ func (c InfrastructureContext) Copy() error {
 		)
 		return err
 	}
-	
+
 	var bar *progressbar.ProgressBar
-	
+
 	if c.showPB {
 		bar = progressbar.Default(int64(len(envs)), "Infrastructure")
-  	}
+	}
 
 	for _, env := range envs {
 		e := env.Environment

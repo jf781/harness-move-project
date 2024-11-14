@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"harness-copy-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 type VariableContext struct {
@@ -15,7 +15,7 @@ type VariableContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
-	showPB 			  bool
+	showPB        bool
 }
 
 func NewVariableOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) VariableContext {
@@ -26,7 +26,7 @@ func NewVariableOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, 
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
-		showPB: 			 showPB,
+		showPB:        showPB,
 	}
 }
 
@@ -46,7 +46,7 @@ func (c VariableContext) Copy() error {
 	}
 
 	var bar *progressbar.ProgressBar
-	
+
 	if c.showPB {
 		bar = progressbar.Default(int64(len(variables)), "Variables")
 	}
