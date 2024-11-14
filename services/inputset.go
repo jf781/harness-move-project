@@ -16,9 +16,10 @@ type InputsetContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB				bool
 }
 
-func NewInputsetOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) InputsetContext {
+func NewInputsetOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) InputsetContext {
 	return InputsetContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -26,6 +27,7 @@ func NewInputsetOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, 
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB: 			 showPB,
 	}
 }
 
@@ -43,7 +45,11 @@ func (c InputsetContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(pipelines)), "Inputsets")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(pipelines)), "Inputsets")
+	}
 	var failed []string
 
 	for _, pipeline := range pipelines {
@@ -81,11 +87,17 @@ func (c InputsetContext) Copy() error {
 			} else {
 				IncrementInputSetsMoved()
 			}
+			if c.showPB {
+				bar.Add(1)
+			}
+		}
+		if c.showPB {
 			bar.Add(1)
 		}
-		bar.Add(1)
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	reportFailed(failed, "inputsets:")
 	return nil

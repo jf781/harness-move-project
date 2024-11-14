@@ -17,9 +17,10 @@ type ResourceGroupContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB				bool
 }
 
-func NewResourceGroupOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) ResourceGroupContext {
+func NewResourceGroupOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) ResourceGroupContext {
 	return ResourceGroupContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -27,6 +28,7 @@ func NewResourceGroupOperation(api *ApiRequest, sourceOrg, sourceProject, target
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB: 			 showPB,
 	}
 }
 
@@ -41,7 +43,11 @@ func (c ResourceGroupContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(resourceGroups)), "Resource Groups")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(resourceGroups)), "Resource Groups")
+	}
 
 	for _, rg := range resourceGroups {
 
@@ -74,9 +80,13 @@ func (c ResourceGroupContext) Copy() error {
 		} else {
 			IncrementResourceGroupsMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

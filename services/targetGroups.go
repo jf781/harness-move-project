@@ -17,9 +17,10 @@ type TargetGroupContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB 			  bool
 }
 
-func NewTargetGroups(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) TargetGroupContext {
+func NewTargetGroups(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) TargetGroupContext {
 	return TargetGroupContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -27,6 +28,7 @@ func NewTargetGroups(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targe
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB: 	     showPB,
 	}
 }
 
@@ -45,7 +47,11 @@ func (c TargetGroupContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(envs)), "Targets    ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(envs)), "Targets    ")
+	}
 
 	for _, env := range envs {
 		e := env.Environment
@@ -59,7 +65,9 @@ func (c TargetGroupContext) Copy() error {
 			continue
 		}
 
-		bar.ChangeMax(bar.GetMax() + len(targetGroups))
+		if c.showPB {
+			bar.ChangeMax(bar.GetMax() + len(targetGroups))
+		}
 
 		for _, targetGroup := range targetGroups {
 
@@ -97,11 +105,17 @@ func (c TargetGroupContext) Copy() error {
 			} else {
 				IncrementTargetGroupsMoved()
 			}
+			if c.showPB {
+				bar.Add(1)
+			}
+		}
+		if c.showPB {
 			bar.Add(1)
 		}
-		bar.Add(1)
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

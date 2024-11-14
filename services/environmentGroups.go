@@ -18,9 +18,10 @@ type EnvGroupContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewEnvGroupOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) EnvGroupContext {
+func NewEnvGroupOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) EnvGroupContext {
 	return EnvGroupContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -28,6 +29,7 @@ func NewEnvGroupOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, 
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -47,7 +49,11 @@ func (c EnvGroupContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(envGroups)), "Environment Groups:    ")
+	var bar  *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(envGroups)), "Environment Groups:    ")
+	}
 	var failed []string
 
 	for _, eg := range envGroups {
@@ -78,9 +84,13 @@ func (c EnvGroupContext) Copy() error {
 		} else {
 			IncrementEnvironmentGroupsMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	reportFailed(failed, "Environment Groups:")
 	return nil

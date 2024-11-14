@@ -19,9 +19,10 @@ type FileStoreContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewFileStoreOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) FileStoreContext {
+func NewFileStoreOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) FileStoreContext {
 	return FileStoreContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -29,6 +30,7 @@ func NewFileStoreOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg,
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -44,22 +46,30 @@ func (c FileStoreContext) Copy() error {
 		return err
 	}
 
-	bar = progressbar.Default(int64(len(nodes)), "File Store")
+	if c.showPB {
+		bar = progressbar.Default(int64(len(nodes)), "File Store")
+	}
+
+
 	var failures []string
 
 	for _, n := range nodes {
 
 		IncrementFileStoresTotal()
 
-		if err := c.handleNode(n, failures, c.logger); err != nil {
+		if err := c.handleNode(n, failures, c.logger, c.showPB); err != nil {
 			c.logger.Error("Failed to handle file", zap.Error(err))
 			failures = handeNodeFailure(n, failures, err)
 		} else {
 			IncrementFileStoresMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	reportFailed(failures, "file store nodes:")
 	return nil
@@ -69,7 +79,7 @@ func handeNodeFailure(node *model.FileStoreNode, failures []string, err error) [
 	return append(failures, fmt.Sprintf("%s (%s) - %s", node.Name, node.Path, err.Error()))
 }
 
-func (c FileStoreContext) handleNode(n *model.FileStoreNode, failures []string, logger *zap.Logger) error {
+func (c FileStoreContext) handleNode(n *model.FileStoreNode, failures []string, logger *zap.Logger, showPB bool) error {
 
 	// CREATE FOLDER OR FILE
 	if err := c.createNode(n, c.logger); err != nil {
@@ -90,15 +100,19 @@ func (c FileStoreContext) handleNode(n *model.FileStoreNode, failures []string, 
 		return err
 	}
 
-	bar.ChangeMax(bar.GetMax() + len(nodes))
+	if showPB {
+		bar.ChangeMax(bar.GetMax() + len(nodes))
+	}
 
 	// FOR EACH NODE MAKE A RECURSIVE CALL
 	for _, n := range nodes {
-		if err := c.handleNode(n, failures, c.logger); err != nil {
+		if err := c.handleNode(n, failures, c.logger, c.showPB); err != nil {
 			logger.Error("Error creating file or directory", zap.Error(err))
 			failures = handeNodeFailure(n, failures, err)
 		}
-		bar.Add(1)
+		if showPB {
+			bar.Add(1)
+		}
 	}
 
 	return nil

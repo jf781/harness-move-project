@@ -18,9 +18,10 @@ type UserGroupContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewUserGroupOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) UserGroupContext {
+func NewUserGroupOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) UserGroupContext {
 	return UserGroupContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -28,6 +29,7 @@ func NewUserGroupOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg,
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -46,7 +48,11 @@ func (c UserGroupContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(groups)), "User Groups    ")
+	var bar *progressbar.ProgressBar
+	
+	if c.showPB {
+		bar = progressbar.Default(int64(len(groups)), "User Groups    ")
+	}
 
 	for _, g := range groups {
 
@@ -90,9 +96,13 @@ func (c UserGroupContext) Copy() error {
 		} else {
 			IncrementUserGroupsMoved()
 		}
-		bar.Add(1)
+		if c.showPB{
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

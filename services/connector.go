@@ -2,9 +2,10 @@ package services
 
 import (
 	"encoding/json"
+	// "fmt"
 
 	"harness-copy-project/model"
-	// "github.com/schollz/progressbar/v3"
+	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
 )
 
@@ -18,9 +19,10 @@ type ConnectorContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewConnectorOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) ConnectorContext {
+func NewConnectorOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) ConnectorContext {
 	return ConnectorContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -28,6 +30,7 @@ func NewConnectorOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg,
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -46,7 +49,11 @@ func (c ConnectorContext) Copy() error {
 		return err
 	}
 
-	// bar := progressbar.Default(int64(len(connectors)), "Connectors    ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(connectors)), "Connectors    ")
+	}
 
 	for _, cn := range connectors {
 
@@ -71,10 +78,13 @@ func (c ConnectorContext) Copy() error {
 		} else {
 			IncrementConnectorsMoved()
 		}
-
-		// bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	// bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

@@ -20,6 +20,7 @@ type UserScopeContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
 type RemoveUserScopeContext struct {
@@ -29,7 +30,7 @@ type RemoveUserScopeContext struct {
 	logger        *zap.Logger
 }
 
-func NewUserScopeOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) UserScopeContext {
+func NewUserScopeOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) UserScopeContext {
 	return UserScopeContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -37,6 +38,7 @@ func NewUserScopeOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg,
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -64,7 +66,11 @@ func (c UserScopeContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(users)), "Users    ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(users)), "Users    ")
+	}
 
 	for _, u := range users {
 
@@ -91,9 +97,13 @@ func (c UserScopeContext) Copy() error {
 		} else {
 			IncrementUsersMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

@@ -17,9 +17,10 @@ type RoleContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB 			  bool
 }
 
-func NewRoleOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) RoleContext {
+func NewRoleOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) RoleContext {
 	return RoleContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -27,6 +28,7 @@ func NewRoleOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targ
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -45,7 +47,11 @@ func (c RoleContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(roles)), "Roles    ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(roles)), "Roles    ")
+	}
 
 	for _, r := range roles {
 
@@ -77,9 +83,13 @@ func (c RoleContext) Copy() error {
 		} else {
 			IncrementRolesMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

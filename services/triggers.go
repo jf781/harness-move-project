@@ -17,9 +17,10 @@ type TriggerContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB 			  bool
 }
 
-func NewTriggerOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) TriggerContext {
+func NewTriggerOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) TriggerContext {
 	return TriggerContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -27,6 +28,7 @@ func NewTriggerOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, t
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB: 			showPB,
 	}
 }
 
@@ -62,7 +64,11 @@ func (c TriggerContext) Copy() error {
 		triggers = append(triggers, triggerLists...)
 	}
 
-	bar := progressbar.Default(int64(len(triggers)), "Triggers    ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(triggers)), "Triggers    ")
+	}
 
 	for _, t := range triggers {
 
@@ -88,9 +94,13 @@ func (c TriggerContext) Copy() error {
 		} else {
 			IncrementTriggersMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

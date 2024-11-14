@@ -20,9 +20,10 @@ type PipelineContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB				bool
 }
 
-func NewPipelineOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) PipelineContext {
+func NewPipelineOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) PipelineContext {
 	return PipelineContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -30,6 +31,7 @@ func NewPipelineOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, 
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB: 			 showPB,
 	}
 }
 
@@ -48,7 +50,11 @@ func (c PipelineContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(pipelines)), "Pipelines   ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(pipelines)), "Pipelines   ")
+	}
 
 	for _, pipe := range pipelines {
 
@@ -67,9 +73,13 @@ func (c PipelineContext) Copy() error {
 		} else {
 			IncrementPipelinesMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

@@ -83,13 +83,19 @@ func main() {
 			},
 			&cli.BoolFlag{
 				Name:     "copyCDComponents",
-				Usage:    "The if set to 'true', then it will copy the Continuous Delivery components.",
+				Usage:    "If set to 'true', then it will copy the Continuous Delivery components.",
 				Required: false,
 				Value:    false,
 			},
 			&cli.BoolFlag{
 				Name:     "copyFFComponents",
-				Usage:    "The if set to 'true, then it will copy the Feature Flag components.",
+				Usage:    "If set to 'true, then it will copy the Feature Flag components.",
+				Required: false,
+				Value:    false,
+			},
+			&cli.BoolFlag{
+				Name:     "showProgressBar",
+				Usage:    "If set to 'true, then it will show the progress bar for items as they are copied.",
 				Required: false,
 				Value:    false,
 			},
@@ -127,6 +133,7 @@ func run(c *cli.Context) error {
 				Logger:  logger,
 				CopyCD:  c.Bool("copyCDComponents"),
 				CopyFF:  c.Bool("copyFFComponents"),
+				ShowPB:  c.Bool("showProgressBar"),
 			},
 			Source: operation.NoName{
 				Org:     csvData.SourceOrg[i],

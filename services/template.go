@@ -19,9 +19,10 @@ type TemplateContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewTemplateOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) TemplateContext {
+func NewTemplateOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) TemplateContext {
 	return TemplateContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -29,6 +30,7 @@ func NewTemplateOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, 
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -46,8 +48,13 @@ func (c TemplateContext) Copy() error {
 		)
 		return err
 	}
+	
+	var bar *progressbar.ProgressBar
 
-	bar := progressbar.Default(int64(len(templates)), "Templates   ")
+	if c.showPB {
+		bar = progressbar.Default(int64(len(templates)), "Templates   ")
+	}
+
 	var failed []string
 
 	for _, template := range templates {
@@ -71,9 +78,13 @@ func (c TemplateContext) Copy() error {
 		} else {
 			IncrementTemplatesMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	reportFailed(failed, "templates:")
 	return nil
