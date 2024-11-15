@@ -66,7 +66,9 @@ func (c TargetContext) Copy() error {
 			continue
 		}
 
-		bar.ChangeMax(bar.GetMax() + len(targets))
+		if c.showPB {
+			bar.ChangeMax(bar.GetMax() + len(targets))
+		}
 
 		for _, target := range targets {
 
