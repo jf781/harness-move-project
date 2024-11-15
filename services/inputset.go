@@ -62,7 +62,9 @@ func (c InputsetContext) Copy() error {
 			continue
 		}
 
-		bar.ChangeMax(bar.GetMax() + len(inputsets))
+		if c.showPB {
+			bar.ChangeMax(bar.GetMax() + len(inputsets))
+		}
 
 		for _, inputset := range inputsets {
 

@@ -21,7 +21,7 @@ func main() {
 
 	// Initlize and configure the logger
 	config := zap.NewProductionConfig()
-	config.Level = zap.NewAtomicLevelAt(zapcore.WarnLevel) // Set to Info, Debug, or Error for more verbose logging
+	config.Level = zap.NewAtomicLevelAt(zapcore.ErrorLevel) // Set to Info, Debug, or Error for more verbose logging
 	logger, _ = config.Build()
 
 	startTime := time.Now()
