@@ -73,7 +73,6 @@ func (c ConnectorContext) Copy() error {
 				zap.String("connector", cn.Connector.Name),
 				zap.Error(err),
 			)
-			return err
 		} else {
 			IncrementConnectorsMoved()
 		}
