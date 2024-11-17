@@ -162,7 +162,7 @@ func (c TemplateContext) getTemplate(org, project, templateIdentifier, versionLa
 		return nil, err
 	}
 	if resp.IsError() {
-		logger.Error("Error response from API when listing templates",
+		logger.Error("Error response from API when fechting template: "+templateIdentifier,
 			zap.String("response",
 				resp.String(),
 			),

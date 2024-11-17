@@ -256,13 +256,13 @@ func (api *ApiRequest) getCurrentUserInfo(org, project string, logger *zap.Logge
 		}).
 		Get(api.BaseURL + CURRENTUSER)
 	if err != nil {
-		logger.Error("Failed to request to list of users",
+		logger.Error("Failed to request to get current user",
 			zap.Error(err),
 		)
 		return nil, err
 	}
 	if resp.IsError() {
-		logger.Error("Error response from API when listing users",
+		logger.Error("Error response from API when getting current user",
 			zap.String("response",
 				resp.String(),
 			),

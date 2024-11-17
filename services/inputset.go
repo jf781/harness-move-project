@@ -2,7 +2,6 @@ package services
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
@@ -50,7 +49,6 @@ func (c InputsetContext) Copy() error {
 	if c.showPB {
 		bar = progressbar.Default(int64(len(pipelines)), "Inputsets")
 	}
-	var failed []string
 
 	for _, pipeline := range pipelines {
 		inputsets, err := c.api.listInputsets(c.sourceOrg, c.sourceProject, pipeline.Identifier, c.logger)
@@ -85,7 +83,6 @@ func (c InputsetContext) Copy() error {
 					zap.String("input set", inputset.Name),
 					zap.Error(err),
 				)
-				failed = append(failed, fmt.Sprintln(pipeline.Name, "/", err.Error()))
 			} else {
 				IncrementInputSetsMoved()
 			}
@@ -101,7 +98,6 @@ func (c InputsetContext) Copy() error {
 		bar.Finish()
 	}
 
-	reportFailed(failed, "inputsets:")
 	return nil
 }
 
@@ -182,7 +178,7 @@ func (api *ApiRequest) getInputset(org, project, pipelineIdentifier, isIdentifie
 		return nil, err
 	}
 	if resp.IsError() {
-		logger.Error("Error response from API when listing input sets",
+		logger.Error("Error response from API when fechting input set: "+isIdentifier,
 			zap.String("response",
 				resp.String(),
 			),

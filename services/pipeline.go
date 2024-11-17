@@ -157,7 +157,7 @@ func (api *ApiRequest) getPipeline(org, project, pipeIdentifier string, logger *
 		return nil, err
 	}
 	if resp.IsError() {
-		logger.Error("Error response from API when listing pipelines",
+		logger.Error("Error response from API when fetching pipeline. Pipeline: "+pipeIdentifier,
 			zap.String("response",
 				resp.String(),
 			),

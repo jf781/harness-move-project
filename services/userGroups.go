@@ -185,13 +185,13 @@ func (api *ApiRequest) getUsersEmail(user *model.UserGroupLookup, logger *zap.Lo
 		Get(api.BaseURL + USERLOOKUP + "/" + user.Identifier)
 
 	if err != nil {
-		logger.Error("Failed to request to list of user groups",
+		logger.Error("Failed to request to get user details for user: "+user.Identifier,
 			zap.Error(err),
 		)
 		return nil, err
 	}
 	if resp.IsError() {
-		logger.Error("Error response from API when listing user groups",
+		logger.Error("Error response from API when getting user details for user: "+user.Identifier,
 			zap.String("response",
 				resp.String(),
 			),
