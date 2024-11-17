@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -15,19 +17,30 @@ import (
 
 var Version = "development"
 var errs []error
-var logger *zap.Logger
+var globalLogger *zap.Logger
+var globalLogBuffer bytes.Buffer
+var loopLogger *zap.Logger
+var SummaryReport []operation.ProjectSummary
 
 func main() {
 
 	// Initlize and configure the logger
-	config := zap.NewProductionConfig()
-	config.Level = zap.NewAtomicLevelAt(zapcore.ErrorLevel) // Set to Info, Debug, or Error for more verbose logging
-	logger, _ = config.Build()
+	globalConfig := zap.NewProductionConfig()
+	globalConfig.Level = zap.NewAtomicLevelAt(zapcore.ErrorLevel) // Set to Info, Debug, or Error for more verbose logging
+
+	// Create a core that writes to the buffer
+	globalCore := zapcore.NewCore(
+		zapcore.NewJSONEncoder(globalConfig.EncoderConfig),
+		zapcore.AddSync(&globalLogBuffer),
+		globalConfig.Level,
+	)
+
+	globalLogger = zap.New(globalCore)
 
 	startTime := time.Now()
 
 	// Defer the logger and print the final log
-	defer logger.Sync()
+	defer globalLogger.Sync()
 	defer func() {
 		stopTime := time.Now()
 		apiCalls := services.GetApiCalls()
@@ -41,18 +54,19 @@ func main() {
 			avgApiCallDuration = 0
 		}
 
-		logger.Info("Harness Copy Project has completed.",
+		globalLogger.Info("Harness Copy Project has completed.",
 			zap.Int("Number of API Calls: ", apiCalls),
 			zap.String("Run Duration: ", duration.String()),
 			zap.Duration("Average API Call Duration: ", avgApiCallDuration),
 			zap.Int("Number of projects moved: ", projects),
 			zap.String("Stop Time: ", stopTime.Format("12:00:00")),
 		)
+
 	}()
 
 	// Start logging
-	logger.Info("Harness Copy Project has started.")
-	logger.Info("Start time: " + startTime.Format("12:00:00"))
+	globalLogger.Info("Harness Copy Project has started.")
+	globalLogger.Info("Start time: " + startTime.Format("12:00:00"))
 
 	// Create a new CLI app
 	app := &cli.App{
@@ -99,6 +113,12 @@ func main() {
 				Required: false,
 				Value:    false,
 			},
+			// &cli.StringFlag{
+			// 	Name:     "logLevel",
+			// 	Usage:    "If set to 'true, then it will show the progress bar for items as they are copied.",
+			// 	Required: false,
+			// 	Value:    "ErrorLevel",
+			// },
 		},
 	}
 
@@ -113,7 +133,7 @@ func run(c *cli.Context) error {
 
 	csvData, err := importCsv.Exec()
 	if err != nil {
-		logger.Error("Failed to pull CSV data",
+		globalLogger.Error("Failed to pull CSV data",
 			zap.String("csvPath", c.String("csvPath")),
 			zap.Error(err),
 		)
@@ -121,6 +141,21 @@ func run(c *cli.Context) error {
 	}
 
 	for i := 0; i < len(csvData.SourceOrg); i++ {
+		// Create a new log buffer for the project
+		var loopLogBuffer bytes.Buffer
+
+		// Initialize and configure the logger for the project
+		loopConfig := zap.NewProductionConfig()
+		loopConfig.Level = zap.NewAtomicLevelAt(zapcore.ErrorLevel) // Set to Info, Debug, or Error for more verbose logging
+
+		loopCore := zapcore.NewCore(
+			zapcore.NewJSONEncoder(loopConfig.EncoderConfig),
+			zapcore.AddSync(&loopLogBuffer),
+			loopConfig.Level,
+		)
+
+		loopLogger = zap.New(loopCore)
+
 		// Increment the number of projects moved
 		services.IncrementProjects()
 
@@ -130,7 +165,7 @@ func run(c *cli.Context) error {
 				Token:   c.String("apiToken"),
 				Account: c.String("accountId"),
 				BaseURL: c.String("baseUrl"),
-				Logger:  logger,
+				Logger:  loopLogger,
 				CopyCD:  c.Bool("copyCDComponents"),
 				CopyFF:  c.Bool("copyFFComponents"),
 				ShowPB:  c.Bool("showProgressBar"),
@@ -147,7 +182,7 @@ func run(c *cli.Context) error {
 
 		// Check for missing or empty values
 		if cp.Source.Org == "" || cp.Source.Project == "" || cp.Target.Org == "" {
-			logger.Warn("Invalid CSV data. Missing required fields.",
+			loopLogger.Warn("Invalid CSV data. Missing required fields.",
 				zap.String("Source Org", cp.Source.Org),
 				zap.String("Source Project", cp.Source.Project),
 				zap.String("Target Org", cp.Target.Org),
@@ -164,7 +199,7 @@ func run(c *cli.Context) error {
 
 		// Execute the copy operation from source to target operation
 		if err := cp.Exec(); err != nil {
-			logger.Error("Failed to Copy Project",
+			loopLogger.Error("Failed to Copy Project",
 				zap.String("Source Project", cp.Source.Project),
 				zap.String("Target Project", cp.Target.Project),
 				zap.Error(err),
@@ -173,15 +208,52 @@ func run(c *cli.Context) error {
 			continue
 		}
 
-		if err := operation.ValidateAndLogCopy(cp, logger); err != nil {
+		// Validate the copy operation
+		if err := operation.ValidateAndLogCopy(cp, loopLogger); err != nil {
 			errs = append(errs, err)
 			continue
 		}
 
-		logger.Info(fmt.Sprintf("Project '%v' has been copied to org: '%v' \n", cp.Source.Project, cp.Target.Org))
+		loopLogger.Info(fmt.Sprintf("Project '%v' has been copied to org: '%v' \n", cp.Source.Project, cp.Target.Org))
 
+		// Reset the API call counter
 		services.ResetAllCounters()
 
+		// Parse and filter error messages for the project
+		operation.ParseAndPrintErrors(loopLogBuffer.String(), cp.Source.Project)
+
+		// Create a summary report for the project
+		currentProjectSummary := operation.ProjectCopySummary(cp.Source.Project, cp.Target.Project, loopLogBuffer.String())
+		SummaryReport = append(SummaryReport, currentProjectSummary)
+
 	}
+
+	// Output summary for all projects
+	maxSourceLen := len("Source Project")
+	maxTargetLen := len("Target Project")
+	for _, summary := range SummaryReport {
+		if len(summary.SourceProject) > maxSourceLen {
+			maxSourceLen = len(summary.SourceProject)
+		}
+		if len(summary.TargetProject) > maxTargetLen {
+			maxTargetLen = len(summary.TargetProject)
+		}
+	}
+
+	headerFmt := fmt.Sprintf("%%-%ds  %%-%ds  %%s\n", maxSourceLen, maxTargetLen)
+	rowFmt := fmt.Sprintf("%%-%ds  %%-%ds  %%s\n", maxSourceLen, maxTargetLen)
+
+	fmt.Println("\nSummary Report:")
+	fmt.Printf(headerFmt, "Source Project", "Target Project", "Successful")
+	fmt.Println(strings.Repeat("-", maxSourceLen+maxTargetLen+15))
+
+	for _, summary := range SummaryReport {
+		successStr := "No"
+		if summary.Successful {
+			successStr = "Yes"
+		}
+		fmt.Printf(rowFmt, summary.SourceProject, summary.TargetProject, successStr)
+	}
+
 	return nil
 }
