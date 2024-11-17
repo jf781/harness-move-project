@@ -7,9 +7,18 @@ import (
 	"harness-copy-project/services"
 )
 
+type (
+	ProjectSummary struct {
+		SourceProject string
+		TargetProject string
+		Successful    bool
+	}
+)
+
 func ValidateAndLogCopy(cp Copy, logger *zap.Logger) error {
 	var projectErr []bool
 
+	// Output project entity counts to std out
 	fmt.Println(color.GreenString("Project '%v' has been copied to '%v'", cp.Source.Project, cp.Target.Project))
 	fmt.Println(color.GreenString("Connectors Total: %v ", services.GetConnectorsTotal()))
 	fmt.Println(color.GreenString("Connectors Moved: %v ", services.GetConnectorsMoved()))
@@ -97,20 +106,19 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) error {
 
 	if services.ValidateCopy(projectErr) {
 		if err := cp.Freeze(); err != nil {
-			logger.Error("Failed to Copy Project",
+			logger.Error("Failed to Freeze Project",
 				zap.String("Source Project", cp.Source.Project),
-				zap.String("Target Project", cp.Target.Project),
 				zap.Error(err),
 			)
-			fmt.Println(color.RedString("Error encountered while moving project %v: %v ", cp.Target.Project, err))
+			fmt.Println(color.RedString("Error encountered while freezing project: '%v'.  Err: %v ", cp.Source.Project, err))
 			return err
 		}
 	} else {
-		fmt.Println(color.RedString("Error encountered while moving project %v: %v ", cp.Target.Project, projectErr))
+		fmt.Println(color.RedString("Error encountered while copying project: '%v'.", cp.Target.Project))
+		fmt.Println(color.RedString("Source project: %v has not be froozen. \n", cp.Source.Project))
 	}
 
-	fmt.Println(color.GreenString("---------------------------------\n\n"))
-
+	// Output project entity counts to logger
 	logger.Info("Project Migration Status:",
 		zap.Int("ConnectorsTotal", services.GetConnectorsTotal()),
 		zap.Int("ConnectorsMoved", services.GetConnectorsMoved()),
@@ -157,4 +165,15 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) error {
 	)
 
 	return nil
+}
+
+func ProjectCopySummary(sourceProject, targetProject, logBuffer string) ProjectSummary {
+	var projectSummary ProjectSummary
+	projectSummary.SourceProject = sourceProject
+	projectSummary.TargetProject = targetProject
+	projectSummary.Successful = true
+	if logBuffer != "" {
+		projectSummary.Successful = false
+	}
+	return projectSummary
 }
