@@ -10,13 +10,14 @@ import (
 
 type (
 	Config struct {
-		Token   string
-		Account string
-		BaseURL string
-		Logger  *zap.Logger
-		CopyCD  bool
-		CopyFF  bool
-		ShowPB  bool
+		Token    string
+		Account  string
+		BaseURL  string
+		Logger   *zap.Logger
+		CopyCD   bool
+		CopyFF   bool
+		ShowPB   bool
+		LogLevel string
 	}
 
 	// NOT SURE WHICH NAME TO CHOSE TO THAT TYPE

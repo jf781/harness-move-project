@@ -38,13 +38,13 @@ type LogEntry struct {
 	Variables        string `json:"variables,omitempty"`
 }
 
-func ParseAndPrintErrors(logs, sourceProject string) {
+func ParseAndPrintProjectLogs(logs, logLevel, sourceProject string) {
 	logEntries := strings.Split(logs, "\n")
 
 	entryCount := len(logEntries)
 	entryIndex := int(1)
 
-	fmt.Printf("Errors encountered when migrating project: '%v'. \n -- \n", sourceProject)
+	fmt.Printf("Logs from migrating project: '%v'. Log Level: '%v'. \n -- \n", sourceProject, logLevel)
 	for _, logEntry := range logEntries {
 		entryIndex++
 		if logEntry == "" {
@@ -56,7 +56,7 @@ func ParseAndPrintErrors(logs, sourceProject string) {
 			fmt.Println("Failed to parse log entry:", err)
 			continue
 		}
-		if entry.Level == "error" {
+		if entry.Level == logLevel {
 
 			// fmt.Println(entry.Message)
 
@@ -64,7 +64,42 @@ func ParseAndPrintErrors(logs, sourceProject string) {
 
 			if entryIndex == entryCount {
 				fmt.Println("---")
-				fmt.Printf("--- End of error log entries for project: '%v' --- \n", sourceProject)
+				fmt.Printf("--- End of log entries for project: '%v' --- \n", sourceProject)
+				fmt.Println("---")
+			} else {
+				fmt.Println("---")
+			}
+		}
+	}
+}
+
+func ParseAndPrintGlobalLogs(logs, logLevel string) {
+	logEntries := strings.Split(logs, "\n")
+
+	entryCount := len(logEntries)
+	entryIndex := int(1)
+
+	fmt.Printf("Logs encountered when during global operations. \n -- \n")
+	for _, logEntry := range logEntries {
+		entryIndex++
+		if logEntry == "" {
+			continue
+		}
+		var entry LogEntry
+		err := json.Unmarshal([]byte(logEntry), &entry)
+		if err != nil {
+			fmt.Println("Failed to parse log entry:", err)
+			continue
+		}
+		if entry.Level == logLevel {
+
+			// fmt.Println(entry.Message)
+
+			printNonEmptyFields(entry)
+
+			if entryIndex == entryCount {
+				fmt.Println("---")
+				fmt.Printf("--- End of log entries for global opreration: --- \n")
 				fmt.Println("---")
 			} else {
 				fmt.Println("---")

@@ -26,7 +26,7 @@ func main() {
 
 	// Initlize and configure the logger
 	globalConfig := zap.NewProductionConfig()
-	globalConfig.Level = zap.NewAtomicLevelAt(zapcore.ErrorLevel) // Set to Info, Debug, or Error for more verbose logging
+	globalConfig.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel) // Set to Info, Debug, or Error for more verbose logging
 
 	// Create a core that writes to the buffer
 	globalCore := zapcore.NewCore(
@@ -113,12 +113,12 @@ func main() {
 				Required: false,
 				Value:    false,
 			},
-			// &cli.StringFlag{
-			// 	Name:     "logLevel",
-			// 	Usage:    "If set to 'true, then it will show the progress bar for items as they are copied.",
-			// 	Required: false,
-			// 	Value:    "ErrorLevel",
-			// },
+			&cli.StringFlag{
+				Name:     "logLevel",
+				Usage:    "If set to 'true, then it will show the progress bar for items as they are copied.",
+				Required: false,
+				Value:    "error",
+			},
 		},
 	}
 
@@ -140,13 +140,15 @@ func run(c *cli.Context) error {
 		return err
 	}
 
+	logLevel := strings.ToLower(c.String("logLevel"))
+
 	for i := 0; i < len(csvData.SourceOrg); i++ {
 		// Create a new log buffer for the project
 		var loopLogBuffer bytes.Buffer
 
 		// Initialize and configure the logger for the project
 		loopConfig := zap.NewProductionConfig()
-		loopConfig.Level = zap.NewAtomicLevelAt(zapcore.ErrorLevel) // Set to Info, Debug, or Error for more verbose logging
+		loopConfig.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel) // Set to Info, Debug, or Error for more verbose logging
 
 		loopCore := zapcore.NewCore(
 			zapcore.NewJSONEncoder(loopConfig.EncoderConfig),
@@ -162,13 +164,14 @@ func run(c *cli.Context) error {
 		// Create a new copy operation
 		cp := operation.Copy{
 			Config: operation.Config{
-				Token:   c.String("apiToken"),
-				Account: c.String("accountId"),
-				BaseURL: c.String("baseUrl"),
-				Logger:  loopLogger,
-				CopyCD:  c.Bool("copyCDComponents"),
-				CopyFF:  c.Bool("copyFFComponents"),
-				ShowPB:  c.Bool("showProgressBar"),
+				Token:    c.String("apiToken"),
+				Account:  c.String("accountId"),
+				BaseURL:  c.String("baseUrl"),
+				Logger:   loopLogger,
+				CopyCD:   c.Bool("copyCDComponents"),
+				CopyFF:   c.Bool("copyFFComponents"),
+				ShowPB:   c.Bool("showProgressBar"),
+				LogLevel: logLevel,
 			},
 			Source: operation.NoName{
 				Org:     csvData.SourceOrg[i],
@@ -220,13 +223,16 @@ func run(c *cli.Context) error {
 		services.ResetAllCounters()
 
 		// Parse and filter error messages for the project
-		operation.ParseAndPrintErrors(loopLogBuffer.String(), cp.Source.Project)
+		operation.ParseAndPrintProjectLogs(loopLogBuffer.String(), logLevel, cp.Source.Project)
 
 		// Create a summary report for the project
 		currentProjectSummary := operation.ProjectCopySummary(cp.Source.Project, cp.Target.Project, loopLogBuffer.String())
 		SummaryReport = append(SummaryReport, currentProjectSummary)
 
 	}
+
+	// Parse and filter error messages for the global operation
+	operation.ParseAndPrintGlobalLogs(globalLogBuffer.String(), logLevel)
 
 	// Output summary for all projects
 	maxSourceLen := len("Source Project")
