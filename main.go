@@ -115,7 +115,7 @@ func main() {
 			},
 			&cli.StringFlag{
 				Name:     "logLevel",
-				Usage:    "If set to 'true, then it will show the progress bar for items as they are copied.",
+				Usage:    "Defines the level of logs returned.  Valid responses are 'info', 'warn' and 'error'.",
 				Required: false,
 				Value:    "error",
 			},
