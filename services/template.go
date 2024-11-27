@@ -67,7 +67,7 @@ func (c TemplateContext) Copy() error {
 		)
 		t, err := c.getTemplate(c.sourceOrg, c.sourceProject, template.Identifier, template.VersionLabel, c.logger)
 		if err == nil {
-			newYaml := createYaml(t.Yaml, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+			newYaml := updateYaml (t.Yaml, c.targetOrg, c.targetProject)
 			err = c.createTemplate(c.targetOrg, c.targetProject, newYaml, c.logger)
 		}
 		if err != nil {

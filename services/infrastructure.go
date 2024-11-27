@@ -77,7 +77,7 @@ func (c InfrastructureContext) Copy() error {
 				zap.String("infrastructure", i.Name),
 				zap.String("targetProject", c.targetProject),
 			)
-			newYaml := createYaml(i.Yaml, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+			newYaml := updateYaml(i.Yaml, c.targetOrg, c.targetProject)
 
 			err := c.api.createInfrastructure(&model.CreateInfrastructureRequest{
 				Name:              i.Name,

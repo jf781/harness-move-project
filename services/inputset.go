@@ -75,7 +75,7 @@ func (c InputsetContext) Copy() error {
 			)
 			is, err := c.api.getInputset(c.sourceOrg, c.sourceProject, pipeline.Identifier, inputset.Identifier, c.logger)
 			if err == nil {
-				newYaml := createYaml(is.Yaml, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+				newYaml := updateYaml(is.Yaml, c.targetOrg, c.targetProject)
 				err = c.api.createInputset(c.targetOrg, c.targetProject, pipeline.Identifier, newYaml, c.logger)
 			}
 			if err != nil {

@@ -62,7 +62,7 @@ func (c PipelineContext) Copy() error {
 
 		pipeData, err := c.api.getPipeline(c.sourceOrg, c.sourceProject, pipe.Identifier, c.logger)
 		if err == nil {
-			newYaml := updateYaml(pipeData.YAMLPipeline, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+			newYaml := updateYaml(pipeData.YAMLPipeline, c.targetOrg, c.targetProject)
 			err = c.api.createPipeline(c.targetOrg, c.targetProject, newYaml, c.logger)
 		}
 		if err != nil {

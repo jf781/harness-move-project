@@ -61,7 +61,7 @@ func (c EnvironmentContext) Copy() error {
 			zap.String("targetProject", c.targetProject),
 		)
 
-		newYaml := createYaml(e.Yaml, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+		newYaml := updateYaml(e.Yaml, c.targetOrg, c.targetProject)
 		req := &model.CreateEnvironmentRequest{
 			OrgIdentifier:     c.targetOrg,
 			ProjectIdentifier: c.targetProject,

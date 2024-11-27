@@ -62,7 +62,7 @@ func (c ServiceContext) Copy() error {
 			zap.String("service", s.Service.Name),
 			zap.String("targetProject", c.targetProject),
 		)
-		newYaml := createYaml(s.Service.Yaml, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+		newYaml := updateYaml(s.Service.Yaml, c.targetOrg, c.targetProject)
 		service := &model.CreateServiceRequest{
 			OrgIdentifier:     c.targetOrg,
 			ProjectIdentifier: c.targetProject,
