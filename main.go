@@ -145,6 +145,7 @@ func run(c *cli.Context) error {
 	for i := 0; i < len(csvData.SourceOrg); i++ {
 		// Create a new log buffer for the project
 		var loopLogBuffer bytes.Buffer
+		var copyResult bool
 
 		// Initialize and configure the logger for the project
 		loopConfig := zap.NewProductionConfig()
@@ -212,10 +213,7 @@ func run(c *cli.Context) error {
 		}
 
 		// Validate the copy operation
-		if err := operation.ValidateAndLogCopy(cp, loopLogger); err != nil {
-			errs = append(errs, err)
-			continue
-		}
+		copyResult = operation.ValidateAndLogCopy(cp, loopLogger)
 
 		loopLogger.Info(fmt.Sprintf("Project '%v' has been copied to org: '%v' \n", cp.Source.Project, cp.Target.Org))
 
@@ -226,7 +224,7 @@ func run(c *cli.Context) error {
 		operation.ParseAndPrintProjectLogs(loopLogBuffer.String(), logLevel, cp.Source.Project)
 
 		// Create a summary report for the project
-		currentProjectSummary := operation.ProjectCopySummary(cp.Source.Project, cp.Target.Project, loopLogBuffer.String())
+		currentProjectSummary := operation.ProjectCopySummary(cp.Source.Project, cp.Target.Project, copyResult)
 		SummaryReport = append(SummaryReport, currentProjectSummary)
 
 	}

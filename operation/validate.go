@@ -15,7 +15,7 @@ type (
 	}
 )
 
-func ValidateAndLogCopy(cp Copy, logger *zap.Logger) error {
+func ValidateAndLogCopy(cp Copy, logger *zap.Logger) bool {
 	var projectErr []bool
 
 	// Output project entity counts to std out
@@ -111,11 +111,12 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) error {
 				zap.Error(err),
 			)
 			fmt.Println(color.RedString("Error encountered while freezing project: '%v'.  Err: %v ", cp.Source.Project, err))
-			return err
+			return false
 		}
 	} else {
 		fmt.Println(color.RedString("Error encountered while copying project: '%v'.", cp.Target.Project))
 		fmt.Println(color.RedString("Source project: %v has not be froozen. \n", cp.Source.Project))
+		return false
 	}
 
 	// Output project entity counts to logger
@@ -164,16 +165,13 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) error {
 		zap.Int("VariablesMoved", services.GetVariablesMoved()),
 	)
 
-	return nil
+	return true
 }
 
-func ProjectCopySummary(sourceProject, targetProject, logBuffer string) ProjectSummary {
+func ProjectCopySummary(sourceProject, targetProject string, copyStatus bool) ProjectSummary {
 	var projectSummary ProjectSummary
 	projectSummary.SourceProject = sourceProject
 	projectSummary.TargetProject = targetProject
-	projectSummary.Successful = true
-	if logBuffer != "" {
-		projectSummary.Successful = false
-	}
+	projectSummary.Successful = copyStatus
 	return projectSummary
 }
