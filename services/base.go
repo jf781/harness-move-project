@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-resty/resty/v2"
+	"gopkg.in/yaml.v3"
 	"harness-copy-project/model"
 )
 
@@ -23,70 +24,59 @@ type Operation interface {
 	Copy() error
 }
 
-func createYaml(yaml, sourceOrg, sourceProject, targetOrg, targetProject string) string {
-	// used to update a YAML pipeline.  Will add the orgIdentifier and projectIdentifier if not found
-	var out string
-
-	if strings.Contains(yaml, "orgIdentifier: ") {
-		out = strings.ReplaceAll(yaml, "orgIdentifier: "+sourceOrg, "orgIdentifier: "+targetOrg)
-	} else {
-		out = fmt.Sprintln(yaml, " orgIdentifier:", targetOrg)
+func updateYamlKeyValues(node *yaml.Node, updates map[string]interface{}) {
+	if node == nil {
+		return
 	}
-
-	if strings.Contains(yaml, "projectIdentifier: ") {
-		out = strings.ReplaceAll(out, "projectIdentifier: "+sourceProject, "projectIdentifier: "+targetProject)
-	} else {
-		out = fmt.Sprintln(yaml, " projectIdentifier:", targetProject)
+	switch node.Kind {
+	case yaml.DocumentNode:
+		for _, contentNode := range node.Content {
+			updateYamlKeyValues(contentNode, updates)
+		}
+	case yaml.MappingNode:
+		for i := 0; i < len(node.Content)-1; i += 2 {
+			keyNode := node.Content[i]
+			valueNode := node.Content[i+1]
+			if newValue, exists := updates[keyNode.Value]; exists {
+				valueNode.Value = fmt.Sprintf("%v", newValue)
+			} else {
+				updateYamlKeyValues(valueNode, updates)
+			}
+		}
+	case yaml.SequenceNode:
+		for _, itemNode := range node.Content {
+			updateYamlKeyValues(itemNode, updates)
+		}
+	case yaml.AliasNode:
+		updateYamlKeyValues(node.Alias, updates)
 	}
-
-	return out
 }
 
-func updateYaml(yaml, sourceOrg, sourceProject, targetOrg, targetProject string) string {
-	// Initialize out with the original YAML content
-	out := yaml
+func updateYaml(inputYaml, targetOrg, targetProject string) string {
+	var data yaml.Node
 
-	// Handle JSON-style with quoted key and quoted value for orgIdentifier
-	if strings.Contains(yaml, "\"orgIdentifier\": \""+sourceOrg+"\"") {
-		out = strings.ReplaceAll(out, "\"orgIdentifier\": \""+sourceOrg+"\"", "\"orgIdentifier\": \""+targetOrg+"\"")
+	yamlBytes := []byte(inputYaml)
+
+	if err := yaml.Unmarshal(yamlBytes, &data); err != nil {
+		panic(fmt.Errorf("failed to parse YAML: %v", err))
 	}
 
-	// Handle JSON-style with quoted key and unquoted value for orgIdentifier
-	if strings.Contains(yaml, "\"orgIdentifier\": "+sourceOrg) {
-		out = strings.ReplaceAll(out, "\"orgIdentifier\": "+sourceOrg, "\"orgIdentifier\": "+targetOrg)
+	updatedKeys := map[string]interface{}{
+		"orgIdentifier":     targetOrg,
+		"projectIdentifier": targetProject,
 	}
 
-	// Handle YAML-style with unquoted key and quoted value for orgIdentifier
-	if strings.Contains(yaml, "orgIdentifier: \""+sourceOrg+"\"") {
-		out = strings.ReplaceAll(out, "orgIdentifier: \""+sourceOrg+"\"", "orgIdentifier: \""+targetOrg+"\"")
-	}
+	updateYamlKeyValues(&data, updatedKeys)
 
-	// Handle YAML-style with unquoted key and unquoted value for orgIdentifier
-	if strings.Contains(yaml, "orgIdentifier: "+sourceOrg) {
-		out = strings.ReplaceAll(out, "orgIdentifier: "+sourceOrg, "orgIdentifier: "+targetOrg)
+	var output strings.Builder
+	encoder := yaml.NewEncoder(&output)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(&data); err != nil {
+		panic(fmt.Errorf("failed to marshal updated YAML: %v", err))
 	}
+	encoder.Close()
 
-	// Handle JSON-style with quoted key and quoted value for projectIdentifier
-	if strings.Contains(yaml, "\"projectIdentifier\": \""+sourceProject+"\"") {
-		out = strings.ReplaceAll(out, "\"projectIdentifier\": \""+sourceProject+"\"", "\"projectIdentifier\": \""+targetProject+"\"")
-	}
-
-	// Handle JSON-style with quoted key and unquoted value for projectIdentifier
-	if strings.Contains(yaml, "\"projectIdentifier\": "+sourceProject) {
-		out = strings.ReplaceAll(out, "\"projectIdentifier\": "+sourceProject, "\"projectIdentifier\": "+targetProject)
-	}
-
-	// Handle YAML-style with unquoted key and quoted value for projectIdentifier
-	if strings.Contains(yaml, "projectIdentifier: \""+sourceProject+"\"") {
-		out = strings.ReplaceAll(out, "projectIdentifier: \""+sourceProject+"\"", "projectIdentifier: \""+targetProject+"\"")
-	}
-
-	// Handle YAML-style with unquoted key and unquoted value for projectIdentifier
-	if strings.Contains(yaml, "projectIdentifier: "+sourceProject) {
-		out = strings.ReplaceAll(out, "projectIdentifier: "+sourceProject, "projectIdentifier: "+targetProject)
-	}
-
-	return out
+	return output.String()
 }
 
 func handleErrorResponse(resp *resty.Response) error {
