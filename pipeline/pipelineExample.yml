@@ -1,6 +1,6 @@
 pipeline:
   identifier: DemoPipeline
-  name: DemoPipeline
+  name: Demo Pipeline
   projectIdentifier: fechtlab
   orgIdentifier: default
   tags: {}
@@ -8,7 +8,7 @@ pipeline:
     - stage:
         identifier: DemoPipeline
         type: Custom
-        name: DemoPipeline
+        name: Demo Pipeline
         description: Demo for executing Harness Move Project executable
         spec:
           execution:
