@@ -2,7 +2,7 @@ pipeline:
   identifier: DemoPipeline
   name: DemoPipeline
   projectIdentifier: fechtlab
-  orgIdentifier: harnessOrg
+  orgIdentifier: default
   tags: {}
   stages:
     - stage:
