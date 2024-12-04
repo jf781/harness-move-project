@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const LIST_PIPELINES = "/pipeline/api/pipelines/list"
@@ -20,9 +20,10 @@ type PipelineContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewPipelineOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) PipelineContext {
+func NewPipelineOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) PipelineContext {
 	return PipelineContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -30,6 +31,7 @@ func NewPipelineOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, 
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -48,7 +50,11 @@ func (c PipelineContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(pipelines)), "Pipelines   ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(pipelines)), "Pipelines   ")
+	}
 
 	for _, pipe := range pipelines {
 
@@ -56,7 +62,7 @@ func (c PipelineContext) Copy() error {
 
 		pipeData, err := c.api.getPipeline(c.sourceOrg, c.sourceProject, pipe.Identifier, c.logger)
 		if err == nil {
-			newYaml := updateYaml(pipeData.YAMLPipeline, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+			newYaml := updateYaml(pipeData.YAMLPipeline, c.targetOrg, c.targetProject)
 			err = c.api.createPipeline(c.targetOrg, c.targetProject, newYaml, c.logger)
 		}
 		if err != nil {
@@ -65,11 +71,15 @@ func (c PipelineContext) Copy() error {
 				zap.Error(err),
 			)
 		} else {
-			IncrementConnectorsMoved()
+			IncrementPipelinesMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }
@@ -147,7 +157,7 @@ func (api *ApiRequest) getPipeline(org, project, pipeIdentifier string, logger *
 		return nil, err
 	}
 	if resp.IsError() {
-		logger.Error("Error response from API when listing pipelines",
+		logger.Error("Error response from API when fetching pipeline. Pipeline: "+pipeIdentifier,
 			zap.String("response",
 				resp.String(),
 			),

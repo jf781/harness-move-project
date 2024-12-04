@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 type VariableContext struct {
@@ -15,9 +15,10 @@ type VariableContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewVariableOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) VariableContext {
+func NewVariableOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) VariableContext {
 	return VariableContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -25,6 +26,7 @@ func NewVariableOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, 
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -43,7 +45,11 @@ func (c VariableContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(variables)), "Variables")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(variables)), "Variables")
+	}
 
 	for _, v := range variables {
 
@@ -68,9 +74,13 @@ func (c VariableContext) Copy() error {
 		} else {
 			IncrementVariablesMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

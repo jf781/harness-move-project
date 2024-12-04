@@ -12,7 +12,7 @@ const MISSING_ORG_YAML = "service:\n  name: pi-svc\n  identifier: pisvc\n  servi
 const MISSING_PROJECT_YAML = "service:\n  name: pi-svc\n  identifier: pisvc\n  serviceDefinition:\n    type: Kubernetes\n    spec:\n      manifests:\n        - manifest:\n            identifier: job\n            type: K8sManifest\n            spec:\n              store:\n                type: Harness\n                spec:\n                  files:\n                    - /pi-svc/job.yaml\n              skipResourceVersioning: false\n              enableDeclarativeRollback: false\n  gitOpsEnabled: false\n  orgIdentifier: default\n"
 
 func TestCreateYaml(t *testing.T) {
-	yaml := createYaml(TEST_VALID_PIPELINE_YAML, "default", "FernandoD", "non_default", "DouradoF")
+	yaml := updateYaml(TEST_VALID_PIPELINE_YAML, "newOrg", "newProject")
 
 	assert.True(t, strings.Contains(yaml, "orgIdentifier: non_default"), "The orgIdentifier not replaced")
 	assert.True(t, strings.Contains(yaml, "projectIdentifier: DouradoF"), "The projectIdentifier not replaced")
@@ -21,14 +21,14 @@ func TestCreateYaml(t *testing.T) {
 func TestCreateYaml_MissingOrg(t *testing.T) {
 	expectedOrg := "  orgIdentifier: non_default\n"
 
-	yaml := createYaml(MISSING_ORG_YAML, "default", "FernandoD", "non_default", "DouradoF")
+	yaml := updateYaml(MISSING_ORG_YAML, "newOrg", "newProject")
 	assert.True(t, strings.Contains(yaml, expectedOrg), "The orgIdentifier is missing")
 }
 
 func TestCreateYaml_MissingProject(t *testing.T) {
 	expectedProject := "  projectIdentifier: DouradoF\n"
 
-	yaml := createYaml(MISSING_PROJECT_YAML, "default", "FernandoD", "non_default", "DouradoF")
+	yaml := updateYaml(MISSING_PROJECT_YAML, "newOrg", "newProject")
 	assert.True(t, strings.Contains(yaml, expectedProject), "The projectIdentifier is missing")
 }
 

@@ -2,11 +2,10 @@ package services
 
 import (
 	"encoding/json"
-	"fmt"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 type InputsetContext struct {
@@ -16,9 +15,10 @@ type InputsetContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewInputsetOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) InputsetContext {
+func NewInputsetOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) InputsetContext {
 	return InputsetContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -26,6 +26,7 @@ func NewInputsetOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, 
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -43,8 +44,11 @@ func (c InputsetContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(pipelines)), "Inputsets")
-	var failed []string
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(pipelines)), "Inputsets")
+	}
 
 	for _, pipeline := range pipelines {
 		inputsets, err := c.api.listInputsets(c.sourceOrg, c.sourceProject, pipeline.Identifier, c.logger)
@@ -56,7 +60,9 @@ func (c InputsetContext) Copy() error {
 			continue
 		}
 
-		bar.ChangeMax(bar.GetMax() + len(inputsets))
+		if c.showPB {
+			bar.ChangeMax(bar.GetMax() + len(inputsets))
+		}
 
 		for _, inputset := range inputsets {
 
@@ -69,7 +75,7 @@ func (c InputsetContext) Copy() error {
 			)
 			is, err := c.api.getInputset(c.sourceOrg, c.sourceProject, pipeline.Identifier, inputset.Identifier, c.logger)
 			if err == nil {
-				newYaml := createYaml(is.Yaml, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+				newYaml := updateYaml(is.Yaml, c.targetOrg, c.targetProject)
 				err = c.api.createInputset(c.targetOrg, c.targetProject, pipeline.Identifier, newYaml, c.logger)
 			}
 			if err != nil {
@@ -77,17 +83,21 @@ func (c InputsetContext) Copy() error {
 					zap.String("input set", inputset.Name),
 					zap.Error(err),
 				)
-				failed = append(failed, fmt.Sprintln(pipeline.Name, "/", err.Error()))
 			} else {
 				IncrementInputSetsMoved()
 			}
+			if c.showPB {
+				bar.Add(1)
+			}
+		}
+		if c.showPB {
 			bar.Add(1)
 		}
-		bar.Add(1)
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
-	reportFailed(failed, "inputsets:")
 	return nil
 }
 
@@ -168,7 +178,7 @@ func (api *ApiRequest) getInputset(org, project, pipelineIdentifier, isIdentifie
 		return nil, err
 	}
 	if resp.IsError() {
-		logger.Error("Error response from API when listing input sets",
+		logger.Error("Error response from API when fechting input set: "+isIdentifier,
 			zap.String("response",
 				resp.String(),
 			),

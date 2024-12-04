@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const LIST_TEMPLATES_ENDPOINT = "/v1/orgs/{org}/projects/{project}/templates"
@@ -19,9 +19,10 @@ type TemplateContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewTemplateOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) TemplateContext {
+func NewTemplateOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) TemplateContext {
 	return TemplateContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -29,6 +30,7 @@ func NewTemplateOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, 
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -47,7 +49,12 @@ func (c TemplateContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(templates)), "Templates   ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(templates)), "Templates   ")
+	}
+
 	var failed []string
 
 	for _, template := range templates {
@@ -60,7 +67,7 @@ func (c TemplateContext) Copy() error {
 		)
 		t, err := c.getTemplate(c.sourceOrg, c.sourceProject, template.Identifier, template.VersionLabel, c.logger)
 		if err == nil {
-			newYaml := createYaml(t.Yaml, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+			newYaml := updateYaml (t.Yaml, c.targetOrg, c.targetProject)
 			err = c.createTemplate(c.targetOrg, c.targetProject, newYaml, c.logger)
 		}
 		if err != nil {
@@ -71,9 +78,13 @@ func (c TemplateContext) Copy() error {
 		} else {
 			IncrementTemplatesMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	reportFailed(failed, "templates:")
 	return nil
@@ -151,7 +162,7 @@ func (c TemplateContext) getTemplate(org, project, templateIdentifier, versionLa
 		return nil, err
 	}
 	if resp.IsError() {
-		logger.Error("Error response from API when listing templates",
+		logger.Error("Error response from API when fechting template: "+templateIdentifier,
 			zap.String("response",
 				resp.String(),
 			),

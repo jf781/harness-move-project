@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const USERGROUP = "/ng/api/user-groups"
@@ -18,9 +18,10 @@ type UserGroupContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewUserGroupOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) UserGroupContext {
+func NewUserGroupOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) UserGroupContext {
 	return UserGroupContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -28,6 +29,7 @@ func NewUserGroupOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg,
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -46,9 +48,15 @@ func (c UserGroupContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(groups)), "User Groups    ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(groups)), "User Groups    ")
+	}
 
 	for _, g := range groups {
+
+		IncrementUserGroupsTotal()
 
 		c.logger.Info("Processing user group",
 			zap.String("user group", g.Name),
@@ -56,8 +64,6 @@ func (c UserGroupContext) Copy() error {
 		)
 
 		for i := range g.Users {
-
-			IncrementUserGroupsTotal()
 
 			user := &model.UserGroupLookup{
 				Identifier:        g.Users[i],
@@ -90,9 +96,13 @@ func (c UserGroupContext) Copy() error {
 		} else {
 			IncrementUserGroupsMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }
@@ -175,13 +185,13 @@ func (api *ApiRequest) getUsersEmail(user *model.UserGroupLookup, logger *zap.Lo
 		Get(api.BaseURL + USERLOOKUP + "/" + user.Identifier)
 
 	if err != nil {
-		logger.Error("Failed to request to list of user groups",
+		logger.Error("Failed to request to get user details for user: "+user.Identifier,
 			zap.Error(err),
 		)
 		return nil, err
 	}
 	if resp.IsError() {
-		logger.Error("Error response from API when listing user groups",
+		logger.Error("Error response from API when getting user details for user: "+user.Identifier,
 			zap.String("response",
 				resp.String(),
 			),

@@ -7,7 +7,8 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-resty/resty/v2"
-	"github.com/jf781/harness-move-project/model"
+	"gopkg.in/yaml.v3"
+	"harness-copy-project/model"
 )
 
 // const BaseURL = "https://app.harness.io"
@@ -23,64 +24,60 @@ type Operation interface {
 	Copy() error
 }
 
-func createYaml(yaml, sourceOrg, sourceProject, targetOrg, targetProject string) string {
-	// used to update a YAML pipeline.  Will add the orgIdentifier and projectIdentifier if not found
-	var out string
-
-	if strings.Contains(yaml, "orgIdentifier: ") {
-		out = strings.ReplaceAll(yaml, "orgIdentifier: "+sourceOrg, "orgIdentifier: "+targetOrg)
-	} else {
-		out = fmt.Sprintln(yaml, " orgIdentifier:", targetOrg)
+func updateYamlKeyValues(node *yaml.Node, updates map[string]interface{}) {
+	if node == nil {
+		return
 	}
-
-	if strings.Contains(yaml, "projectIdentifier: ") {
-		out = strings.ReplaceAll(out, "projectIdentifier: "+sourceProject, "projectIdentifier: "+targetProject)
-	} else {
-		out = fmt.Sprintln(yaml, " projectIdentifier:", targetProject)
+	switch node.Kind {
+	case yaml.DocumentNode:
+		for _, contentNode := range node.Content {
+			updateYamlKeyValues(contentNode, updates)
+		}
+	case yaml.MappingNode:
+		for i := 0; i < len(node.Content)-1; i += 2 {
+			keyNode := node.Content[i]
+			valueNode := node.Content[i+1]
+			if newValue, exists := updates[keyNode.Value]; exists {
+				valueNode.Value = fmt.Sprintf("%v", newValue)
+			} else {
+				updateYamlKeyValues(valueNode, updates)
+			}
+		}
+	case yaml.SequenceNode:
+		for _, itemNode := range node.Content {
+			updateYamlKeyValues(itemNode, updates)
+		}
+	case yaml.AliasNode:
+		updateYamlKeyValues(node.Alias, updates)
 	}
-
-	return out
 }
 
-func createYamlQuotes(yaml, sourceOrg, sourceProject, targetOrg, targetProject string) string {
-	// used to update a YAML pipeline if quotes are defined.  Will add the orgIdentifier and projectIdentifier if not found
-	var out string
+func updateYaml(inputYaml, targetOrg, targetProject string) string {
+	var data yaml.Node
 
-	if strings.Contains(yaml, "orgIdentifier: ") {
-		out = strings.ReplaceAll(yaml, "orgIdentifier: \""+sourceOrg+"\"", "orgIdentifier: \""+targetOrg+"\"")
-	} else {
-		out = fmt.Sprintln(yaml, " orgIdentifier:", targetOrg)
+	yamlBytes := []byte(inputYaml)
+
+	if err := yaml.Unmarshal(yamlBytes, &data); err != nil {
+		panic(fmt.Errorf("failed to parse YAML: %v", err))
 	}
 
-	if strings.Contains(yaml, "projectIdentifier: ") {
-		out = strings.ReplaceAll(out, "projectIdentifier: \""+sourceProject, "projectIdentifier: \""+targetProject)
-	} else {
-		out = fmt.Sprintln(yaml, " projectIdentifier:", targetProject)
+	updatedKeys := map[string]interface{}{
+		"orgIdentifier":     targetOrg,
+		"projectIdentifier": targetProject,
 	}
 
-	return out
+	updateYamlKeyValues(&data, updatedKeys)
+
+	var output strings.Builder
+	encoder := yaml.NewEncoder(&output)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(&data); err != nil {
+		panic(fmt.Errorf("failed to marshal updated YAML: %v", err))
+	}
+	encoder.Close()
+
+	return output.String()
 }
-
-func updateYaml(yaml, sourceOrg, sourceProject, targetOrg, targetProject string) string {
-	// used to only update a YAML pipeline. Will NOT add the orgIdentifier and projectIdentifier if not found
-	var out string
-	// var orgIdOut string
-	// var projIdOut string
-		
-	if strings.Contains(yaml, "\"orgIdentifier\": \""+sourceOrg+"\"") || strings.Contains(yaml, "orgIdentifier: "+sourceOrg) {
-		orgIdOut := strings.ReplaceAll(yaml, "\"orgIdentifier\": \""+sourceOrg+"\"", "\"orgIdentifier\": \""+targetOrg+"\"")
-		out = strings.ReplaceAll(orgIdOut, "orgIdentifier: "+sourceOrg, "orgIdentifier: "+targetOrg)
-	}
-
-	if strings.Contains(yaml, "\"projectIdentifier\": \""+sourceProject+"\"" ) || strings.Contains(yaml, "projectIdentifier: "+sourceProject) {
-		projIdOut := strings.ReplaceAll(out, "projectIdentifier: "+sourceProject, "projectIdentifier: "+targetProject)
-		out = strings.ReplaceAll(projIdOut, "\"projectIdentifier\": \""+sourceProject+"\"", "\"projectIdentifier\": \""+targetProject+"\"")
-	}
-
-	return out
-}
-
-
 
 func handleErrorResponse(resp *resty.Response) error {
 	result := model.ErrorResponse{}
@@ -106,4 +103,15 @@ func reportFailed(failed []string, description string) {
 		fmt.Println(color.RedString(fmt.Sprintf("Failed %s %d", description, len(failed))))
 		fmt.Println(color.RedString(strings.Join(failed, "\n")))
 	}
+}
+
+func ValidateCopy(booleans []bool) bool {
+	for _, b := range booleans {
+		if !b {
+			// false value not found
+			return false
+		}
+	}
+	// false value found
+	return true
 }

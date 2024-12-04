@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const LIST_SERVICES = "/ng/api/servicesV2"
@@ -18,9 +18,10 @@ type ServiceContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewServiceOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) ServiceContext {
+func NewServiceOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) ServiceContext {
 	return ServiceContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -28,6 +29,7 @@ func NewServiceOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, t
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -46,7 +48,11 @@ func (c ServiceContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(services)), "Services    ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(services)), "Services    ")
+	}
 
 	for _, s := range services {
 
@@ -56,7 +62,7 @@ func (c ServiceContext) Copy() error {
 			zap.String("service", s.Service.Name),
 			zap.String("targetProject", c.targetProject),
 		)
-		newYaml := createYaml(s.Service.Yaml, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+		newYaml := updateYaml(s.Service.Yaml, c.targetOrg, c.targetProject)
 		service := &model.CreateServiceRequest{
 			OrgIdentifier:     c.targetOrg,
 			ProjectIdentifier: c.targetProject,
@@ -73,9 +79,13 @@ func (c ServiceContext) Copy() error {
 		} else {
 			IncrementServicesMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

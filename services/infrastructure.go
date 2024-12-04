@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const INFRASTRUCTURE = "/ng/api/infrastructures"
@@ -17,9 +17,10 @@ type InfrastructureContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewInfrastructureOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) InfrastructureContext {
+func NewInfrastructureOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) InfrastructureContext {
 	return InfrastructureContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -27,6 +28,7 @@ func NewInfrastructureOperation(api *ApiRequest, sourceOrg, sourceProject, targe
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -45,7 +47,11 @@ func (c InfrastructureContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(envs)), "Infrastructure")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(envs)), "Infrastructure")
+	}
 
 	for _, env := range envs {
 		e := env.Environment
@@ -58,7 +64,9 @@ func (c InfrastructureContext) Copy() error {
 			continue
 		}
 
-		bar.ChangeMax(bar.GetMax() + len(infras))
+		if c.showPB {
+			bar.ChangeMax(bar.GetMax() + len(infras))
+		}
 
 		for _, infra := range infras {
 			i := infra.Infrastructure
@@ -69,7 +77,7 @@ func (c InfrastructureContext) Copy() error {
 				zap.String("infrastructure", i.Name),
 				zap.String("targetProject", c.targetProject),
 			)
-			newYaml := createYaml(i.Yaml, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+			newYaml := updateYaml(i.Yaml, c.targetOrg, c.targetProject)
 
 			err := c.api.createInfrastructure(&model.CreateInfrastructureRequest{
 				Name:              i.Name,
@@ -90,11 +98,18 @@ func (c InfrastructureContext) Copy() error {
 			} else {
 				IncrementInfrastructureMoved()
 			}
+
+			if c.showPB {
+				bar.Add(1)
+			}
+		}
+		if c.showPB {
 			bar.Add(1)
 		}
-		bar.Add(1)
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

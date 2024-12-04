@@ -25,5 +25,5 @@ jobs:
           goarch: ${{ matrix.goarch }}
           goversion: 1.19
           project_path: "."
-          binary_name: "harness-move-project"
+          binary_name: "harness-copy-project"
           ldflags: ${{ format('-X "main.Version={0}"', github.ref_name) }}

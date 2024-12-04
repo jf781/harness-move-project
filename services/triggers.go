@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const TRIGGER = "/pipeline/api/triggers"
@@ -17,9 +17,10 @@ type TriggerContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewTriggerOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) TriggerContext {
+func NewTriggerOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) TriggerContext {
 	return TriggerContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -27,6 +28,7 @@ func NewTriggerOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, t
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -62,7 +64,11 @@ func (c TriggerContext) Copy() error {
 		triggers = append(triggers, triggerLists...)
 	}
 
-	bar := progressbar.Default(int64(len(triggers)), "Triggers    ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(triggers)), "Triggers    ")
+	}
 
 	for _, t := range triggers {
 
@@ -75,7 +81,7 @@ func (c TriggerContext) Copy() error {
 
 		t.OrgIdentifier = c.targetOrg
 		t.ProjectIdentifier = c.targetProject
-		newYaml := createYaml(t.YAML, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+		newYaml := updateYaml(t.YAML, c.targetOrg, c.targetProject)
 		t.YAML = newYaml
 
 		err = c.api.createPipelineTrigger(t, c.logger)
@@ -88,9 +94,13 @@ func (c TriggerContext) Copy() error {
 		} else {
 			IncrementTriggersMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }
@@ -141,15 +151,8 @@ func (api *ApiRequest) listPipelineTriggers(piplineId, org, project string, logg
 
 	triggers := []*model.TriggerContent{}
 	for _, c := range result.Data.Content {
-		if c.TriggerStatus.Status == "SUCCESS" {
-			newTrigger := c
-			triggers = append(triggers, &newTrigger)
-		} else {
-			logger.Warn("Skipping trigger because the status is not active",
-				zap.String("trigger", c.Name),
-				zap.String("t", c.TriggerStatus.Status),
-			)
-		}
+		newTrigger := c
+		triggers = append(triggers, &newTrigger)
 	}
 
 	return triggers, nil

@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 type EnvironmentContext struct {
@@ -15,9 +15,10 @@ type EnvironmentContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewEnvironmentOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) EnvironmentContext {
+func NewEnvironmentOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) EnvironmentContext {
 	return EnvironmentContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -25,6 +26,7 @@ func NewEnvironmentOperation(api *ApiRequest, sourceOrg, sourceProject, targetOr
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -43,7 +45,11 @@ func (c EnvironmentContext) Copy() error {
 		return nil
 	}
 
-	bar := progressbar.Default(int64(len(envs)), "Environments")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(envs)), "Environments")
+	}
 
 	for _, env := range envs {
 		e := env.Environment
@@ -55,7 +61,7 @@ func (c EnvironmentContext) Copy() error {
 			zap.String("targetProject", c.targetProject),
 		)
 
-		newYaml := createYaml(e.Yaml, c.sourceOrg, c.sourceProject, c.targetOrg, c.targetProject)
+		newYaml := updateYaml(e.Yaml, c.targetOrg, c.targetProject)
 		req := &model.CreateEnvironmentRequest{
 			OrgIdentifier:     c.targetOrg,
 			ProjectIdentifier: c.targetProject,
@@ -74,9 +80,13 @@ func (c EnvironmentContext) Copy() error {
 		} else {
 			IncrementEnvironmentsMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

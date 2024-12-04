@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const SERVICEACCOUNTS = "/ng/api/serviceaccount"
@@ -17,9 +17,10 @@ type ServiceAccountContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewServiceAccountOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) ServiceAccountContext {
+func NewServiceAccountOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) ServiceAccountContext {
 	return ServiceAccountContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -27,6 +28,7 @@ func NewServiceAccountOperation(api *ApiRequest, sourceOrg, sourceProject, targe
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -45,7 +47,11 @@ func (c ServiceAccountContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(serviceAccounts)), "Service Accounts    ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(serviceAccounts)), "Service Accounts    ")
+	}
 
 	for _, sa := range serviceAccounts {
 
@@ -69,9 +75,13 @@ func (c ServiceAccountContext) Copy() error {
 		} else {
 			IncrementServiceAccountsMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

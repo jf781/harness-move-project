@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 type ServiceOverrideContext struct {
@@ -15,9 +15,10 @@ type ServiceOverrideContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewServiceOverrideOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) ServiceOverrideContext {
+func NewServiceOverrideOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) ServiceOverrideContext {
 	return ServiceOverrideContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -25,6 +26,7 @@ func NewServiceOverrideOperation(api *ApiRequest, sourceOrg, sourceProject, targ
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -39,7 +41,10 @@ func (c ServiceOverrideContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(envs)), "Service Override")
+	var bar *progressbar.ProgressBar
+	if c.showPB {
+		bar = progressbar.Default(int64(len(envs)), "Service Override")
+	}
 
 	for _, env := range envs {
 		e := env.Environment
@@ -52,7 +57,9 @@ func (c ServiceOverrideContext) Copy() error {
 			continue
 		}
 
-		bar.ChangeMax(bar.GetMax() + len(overrides))
+		if c.showPB {
+			bar.ChangeMax(bar.GetMax() + len(overrides))
+		}
 
 		for _, o := range overrides {
 
@@ -85,10 +92,14 @@ func (c ServiceOverrideContext) Copy() error {
 					IncrementOverridesMoved()
 				}
 			}
-			bar.Add(1)
+			if c.showPB {
+				bar.Add(1)
+			}
 		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

@@ -1,33 +1,46 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/jf781/harness-move-project/operation"
-	"github.com/jf781/harness-move-project/services"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"harness-copy-project/operation"
+	"harness-copy-project/services"
 )
 
 var Version = "development"
-
-var logger *zap.Logger
+var errs []error
+var globalLogger *zap.Logger
+var globalLogBuffer bytes.Buffer
+var loopLogger *zap.Logger
+var SummaryReport []operation.ProjectSummary
 
 func main() {
 
 	// Initlize and configure the logger
-	config := zap.NewProductionConfig()
-	config.Level = zap.NewAtomicLevelAt(zapcore.WarnLevel) // Set to Info, Debug, or Error for more verbose logging
-	logger, _ = config.Build()
+	globalConfig := zap.NewProductionConfig()
+	globalConfig.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel) // Set to Info, Debug, or Error for more verbose logging
+
+	// Create a core that writes to the buffer
+	globalCore := zapcore.NewCore(
+		zapcore.NewJSONEncoder(globalConfig.EncoderConfig),
+		zapcore.AddSync(&globalLogBuffer),
+		globalConfig.Level,
+	)
+
+	globalLogger = zap.New(globalCore)
 
 	startTime := time.Now()
 
 	// Defer the logger and print the final log
-	defer logger.Sync()
+	defer globalLogger.Sync()
 	defer func() {
 		stopTime := time.Now()
 		apiCalls := services.GetApiCalls()
@@ -41,18 +54,19 @@ func main() {
 			avgApiCallDuration = 0
 		}
 
-		logger.Info("Harness Copy Project has completed.",
+		globalLogger.Info("Harness Copy Project has completed.",
 			zap.Int("Number of API Calls: ", apiCalls),
 			zap.String("Run Duration: ", duration.String()),
 			zap.Duration("Average API Call Duration: ", avgApiCallDuration),
 			zap.Int("Number of projects moved: ", projects),
 			zap.String("Stop Time: ", stopTime.Format("12:00:00")),
 		)
+
 	}()
 
 	// Start logging
-	logger.Info("Harness Copy Project has started.")
-	logger.Info("Start time: " + startTime.Format("12:00:00"))
+	globalLogger.Info("Harness Copy Project has started.")
+	globalLogger.Info("Start time: " + startTime.Format("12:00:00"))
 
 	// Create a new CLI app
 	app := &cli.App{
@@ -83,15 +97,27 @@ func main() {
 			},
 			&cli.BoolFlag{
 				Name:     "copyCDComponents",
-				Usage:    "The if set to 'true', then it will copy the Continuous Delivery components.",
+				Usage:    "If set to 'true', then it will copy the Continuous Delivery components.",
 				Required: false,
 				Value:    false,
 			},
 			&cli.BoolFlag{
 				Name:     "copyFFComponents",
-				Usage:    "The if set to 'true, then it will copy the Feature Flag components.",
+				Usage:    "If set to 'true, then it will copy the Feature Flag components.",
 				Required: false,
 				Value:    false,
+			},
+			&cli.BoolFlag{
+				Name:     "showProgressBar",
+				Usage:    "If set to 'true, then it will show the progress bar for items as they are copied.",
+				Required: false,
+				Value:    false,
+			},
+			&cli.StringFlag{
+				Name:     "logLevel",
+				Usage:    "Defines the level of logs returned.  Valid responses are 'info', 'warn' and 'error'.",
+				Required: false,
+				Value:    "error",
 			},
 		},
 	}
@@ -107,26 +133,46 @@ func run(c *cli.Context) error {
 
 	csvData, err := importCsv.Exec()
 	if err != nil {
-		logger.Error("Failed to pull CSV data",
+		globalLogger.Error("Failed to pull CSV data",
 			zap.String("csvPath", c.String("csvPath")),
 			zap.Error(err),
 		)
 		return err
 	}
 
+	logLevel := strings.ToLower(c.String("logLevel"))
+
 	for i := 0; i < len(csvData.SourceOrg); i++ {
+		// Create a new log buffer for the project
+		var loopLogBuffer bytes.Buffer
+		var copyResult bool
+
+		// Initialize and configure the logger for the project
+		loopConfig := zap.NewProductionConfig()
+		loopConfig.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel) // Set to Info, Debug, or Error for more verbose logging
+
+		loopCore := zapcore.NewCore(
+			zapcore.NewJSONEncoder(loopConfig.EncoderConfig),
+			zapcore.AddSync(&loopLogBuffer),
+			loopConfig.Level,
+		)
+
+		loopLogger = zap.New(loopCore)
+
 		// Increment the number of projects moved
 		services.IncrementProjects()
 
 		// Create a new copy operation
 		cp := operation.Copy{
 			Config: operation.Config{
-				Token:   c.String("apiToken"),
-				Account: c.String("accountId"),
-				BaseURL: c.String("baseUrl"),
-				Logger:  logger,
-				CopyCD:  c.Bool("copyCDComponents"),
-				CopyFF:  c.Bool("copyFFComponents"),
+				Token:    c.String("apiToken"),
+				Account:  c.String("accountId"),
+				BaseURL:  c.String("baseUrl"),
+				Logger:   loopLogger,
+				CopyCD:   c.Bool("copyCDComponents"),
+				CopyFF:   c.Bool("copyFFComponents"),
+				ShowPB:   c.Bool("showProgressBar"),
+				LogLevel: logLevel,
 			},
 			Source: operation.NoName{
 				Org:     csvData.SourceOrg[i],
@@ -140,7 +186,7 @@ func run(c *cli.Context) error {
 
 		// Check for missing or empty values
 		if cp.Source.Org == "" || cp.Source.Project == "" || cp.Target.Org == "" {
-			logger.Warn("Invalid CSV data. Missing required fields.",
+			loopLogger.Warn("Invalid CSV data. Missing required fields.",
 				zap.String("Source Org", cp.Source.Org),
 				zap.String("Source Project", cp.Source.Project),
 				zap.String("Target Org", cp.Target.Org),
@@ -157,124 +203,61 @@ func run(c *cli.Context) error {
 
 		// Execute the copy operation from source to target operation
 		if err := cp.Exec(); err != nil {
-			logger.Error("Failed to Copy Project",
+			loopLogger.Error("Failed to Copy Project",
 				zap.String("Source Project", cp.Source.Project),
 				zap.String("Target Project", cp.Target.Project),
 				zap.Error(err),
 			)
-			return err
-		} else {
-			fmt.Println(color.GreenString("Project '%v' has been copied to '%v'", cp.Source.Project, cp.Target.Project))
-			fmt.Println(color.GreenString("Connectors Total: %v ", services.GetConnectorsTotal()))
-			fmt.Println(color.GreenString("Connectors Moved: %v ", services.GetConnectorsMoved()))
-			fmt.Println(color.GreenString("Environments Total: %v ", services.GetEnvironmentsTotal()))
-			fmt.Println(color.GreenString("Environments Moved: %v ", services.GetEnvironmentsMoved()))
-
-			fmt.Println(color.GreenString("EnvironmentGroups Total: %v ", services.GetEnvironmentGroupsTotal()))
-			fmt.Println(color.GreenString("EnvironmentGroups Moved: %v ", services.GetEnvironmentGroupsMoved()))
-
-			fmt.Println(color.GreenString("FeatureFlags Total: %v ", services.GetFeatureFlagsTotal()))
-			fmt.Println(color.GreenString("FeatureFlags Moved: %v ", services.GetFeatureFlagsMoved()))
-
-			fmt.Println(color.GreenString("FileStores Total: %v ", services.GetFileStoresTotal()))
-			fmt.Println(color.GreenString("FileStores Moved: %v ", services.GetFileStoresMoved()))
-
-			fmt.Println(color.GreenString("Infrastructure Total: %v ", services.GetInfrastructureTotal()))
-			fmt.Println(color.GreenString("Infrastructure Moved: %v ", services.GetInfrastructureMoved()))
-
-			fmt.Println(color.GreenString("InputSets Total: %v ", services.GetInputSetsTotal()))
-			fmt.Println(color.GreenString("InputSets Moved: %v ", services.GetInputSetsMoved()))
-
-			fmt.Println(color.GreenString("Pipelines Total: %v ", services.GetPipelinesTotal()))
-			fmt.Println(color.GreenString("Pipelines Moved: %v ", services.GetPipelinesMoved()))
-
-			fmt.Println(color.GreenString("ResourceGroups Total: %v ", services.GetResourceGroupsTotal()))
-			fmt.Println(color.GreenString("ResourceGroups Moved: %v ", services.GetResourceGroupsMoved()))
-
-			fmt.Println(color.GreenString("RoleAssignments Total: %v ", services.GetRoleAssignmentsTotal()))
-			fmt.Println(color.GreenString("RoleAssignments Moved: %v ", services.GetRoleAssignmentsMoved()))
-
-			fmt.Println(color.GreenString("Roles Total: %v ", services.GetRolesTotal()))
-			fmt.Println(color.GreenString("Roles Moved: %v ", services.GetRolesMoved()))
-
-			fmt.Println(color.GreenString("Service Overrides Total: %v ", services.GetOverridesTotal()))
-			fmt.Println(color.GreenString("Service Overrides Moved: %v ", services.GetOverridesMoved()))
-
-			fmt.Println(color.GreenString("Services Total: %v ", services.GetServicesTotal()))
-			fmt.Println(color.GreenString("Services Moved: %v ", services.GetServicesMoved()))
-
-			fmt.Println(color.GreenString("Tags Total: %v ", services.GetTagsTotal()))
-			fmt.Println(color.GreenString("Tags Moved: %v ", services.GetTagsMoved()))
-
-			fmt.Println(color.GreenString("TargetGroups Total: %v ", services.GetTargetGroupsTotal()))
-			fmt.Println(color.GreenString("TargetGroups Moved: %v ", services.GetTargetGroupsMoved()))
-
-			fmt.Println(color.GreenString("Targets Total: %v ", services.GetTargetsTotal()))
-			fmt.Println(color.GreenString("Targets Moved: %v ", services.GetTargetsMoved()))
-
-			fmt.Println(color.GreenString("Templates Total: %v ", services.GetTemplatesTotal()))
-			fmt.Println(color.GreenString("Templates Moved: %v ", services.GetTemplatesMoved()))
-
-			fmt.Println(color.GreenString("UserGroups Total: %v ", services.GetUserGroupsTotal()))
-			fmt.Println(color.GreenString("UserGroups Moved: %v ", services.GetUserGroupsMoved()))
-
-			fmt.Println(color.GreenString("Users Total: %v ", services.GetUsersTotal()))
-			fmt.Println(color.GreenString("Users Moved: %v ", services.GetUsersMoved()))
-
-			fmt.Println(color.GreenString("Variables Total: %v ", services.GetVariablesTotal()))
-			fmt.Println(color.GreenString("Variables Moved: %v ", services.GetVariablesMoved()))
-
-			// Assuming you have a zap logger instance initialized as 'logger'
-
-			logger.Info("Project Migration Status:",
-				zap.Int("ConnectorsTotal", services.GetConnectorsTotal()),
-				zap.Int("ConnectorsMoved", services.GetConnectorsMoved()),
-				zap.Int("EnvironmentsTotal", services.GetEnvironmentsTotal()),
-				zap.Int("EnvironmentsMoved", services.GetEnvironmentsMoved()),
-				zap.Int("EnvironmentGroupsTotal", services.GetEnvironmentGroupsTotal()),
-				zap.Int("EnvironmentGroupsMoved", services.GetEnvironmentGroupsMoved()),
-				zap.Int("FeatureFlagsTotal", services.GetFeatureFlagsTotal()),
-				zap.Int("FeatureFlagsMoved", services.GetFeatureFlagsMoved()),
-				zap.Int("FileStoresTotal", services.GetFileStoresTotal()),
-				zap.Int("FileStoresMoved", services.GetFileStoresMoved()),
-				zap.Int("InfrastructureTotal", services.GetInfrastructureTotal()),
-				zap.Int("InfrastructureMoved", services.GetInfrastructureMoved()),
-				zap.Int("InputSetsTotal", services.GetInputSetsTotal()),
-				zap.Int("InputSetsMoved", services.GetInputSetsMoved()),
-				zap.Int("PipelinesTotal", services.GetPipelinesTotal()),
-				zap.Int("PipelinesMoved", services.GetPipelinesMoved()),
-				zap.Int("ResourceGroupsTotal", services.GetResourceGroupsTotal()),
-				zap.Int("ResourceGroupsMoved", services.GetResourceGroupsMoved()),
-				zap.Int("RoleAssignmentsTotal", services.GetRoleAssignmentsTotal()),
-				zap.Int("RoleAssignmentsMoved", services.GetRoleAssignmentsMoved()),
-				zap.Int("RolesTotal", services.GetRolesTotal()),
-				zap.Int("RolesMoved", services.GetRolesMoved()),
-				zap.Int("OverridesTotal", services.GetOverridesTotal()),
-				zap.Int("OverridesMoved", services.GetOverridesMoved()),
-				zap.Int("ServicesTotal", services.GetServicesTotal()),
-				zap.Int("ServicesMoved", services.GetServicesMoved()),
-				zap.Int("TagsTotal", services.GetTagsTotal()),
-				zap.Int("TagsMoved", services.GetTagsMoved()),
-				zap.Int("TargetGroupsTotal", services.GetTargetGroupsTotal()),
-				zap.Int("TargetGroupsMoved", services.GetTargetGroupsMoved()),
-				zap.Int("TargetsTotal", services.GetTargetsTotal()),
-				zap.Int("TargetsMoved", services.GetTargetsMoved()),
-				zap.Int("TemplatesTotal", services.GetTemplatesTotal()),
-				zap.Int("TemplatesMoved", services.GetTemplatesMoved()),
-				zap.Int("UserGroupsTotal", services.GetUserGroupsTotal()),
-				zap.Int("UserGroupsMoved", services.GetUserGroupsMoved()),
-				zap.Int("UsersTotal", services.GetUsersTotal()),
-				zap.Int("UsersMoved", services.GetUsersMoved()),
-				zap.Int("VariablesTotal", services.GetVariablesTotal()),
-				zap.Int("VariablesMoved", services.GetVariablesMoved()),
-			)
-
+			errs = append(errs, err)
+			continue
 		}
 
-		logger.Info(fmt.Sprintf("Project '%v' has been copied to '%v'", cp.Source.Project, cp.Target.Project))
+		// Validate the copy operation
+		copyResult = operation.ValidateAndLogCopy(cp, loopLogger)
 
+		loopLogger.Info(fmt.Sprintf("Project '%v' has been copied to org: '%v' \n", cp.Source.Project, cp.Target.Org))
+
+		// Reset the API call counter
 		services.ResetAllCounters()
 
+		// Parse and filter error messages for the project
+		operation.ParseAndPrintProjectLogs(loopLogBuffer.String(), logLevel, cp.Source.Project)
+
+		// Create a summary report for the project
+		currentProjectSummary := operation.ProjectCopySummary(cp.Source.Project, cp.Target.Project, copyResult)
+		SummaryReport = append(SummaryReport, currentProjectSummary)
+
 	}
+
+	// Parse and filter error messages for the global operation
+	operation.ParseAndPrintGlobalLogs(globalLogBuffer.String(), logLevel)
+
+	// Output summary for all projects
+	maxSourceLen := len("Source Project")
+	maxTargetLen := len("Target Project")
+	for _, summary := range SummaryReport {
+		if len(summary.SourceProject) > maxSourceLen {
+			maxSourceLen = len(summary.SourceProject)
+		}
+		if len(summary.TargetProject) > maxTargetLen {
+			maxTargetLen = len(summary.TargetProject)
+		}
+	}
+
+	headerFmt := fmt.Sprintf("%%-%ds  %%-%ds  %%s\n", maxSourceLen, maxTargetLen)
+	rowFmt := fmt.Sprintf("%%-%ds  %%-%ds  %%s\n", maxSourceLen, maxTargetLen)
+
+	fmt.Println("\nSummary Report:")
+	fmt.Printf(headerFmt, "Source Project", "Target Project", "Successful")
+	fmt.Println(strings.Repeat("-", maxSourceLen+maxTargetLen+15))
+
+	for _, summary := range SummaryReport {
+		successStr := "No"
+		if summary.Successful {
+			successStr = "Yes"
+		}
+		fmt.Printf(rowFmt, summary.SourceProject, summary.TargetProject, successStr)
+	}
+
 	return nil
 }

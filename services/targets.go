@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const TARGETS = "/cf/admin/targets"
@@ -17,9 +17,10 @@ type TargetContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewTargets(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) TargetContext {
+func NewTargets(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) TargetContext {
 	return TargetContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -27,6 +28,7 @@ func NewTargets(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProj
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -45,7 +47,12 @@ func (c TargetContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(envs)), "Target Groups    ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(envs)), "Target Groups    ")
+	}
+
 	var failed []string
 
 	for _, env := range envs {
@@ -59,7 +66,9 @@ func (c TargetContext) Copy() error {
 			continue
 		}
 
-		bar.ChangeMax(bar.GetMax() + len(targets))
+		if c.showPB {
+			bar.ChangeMax(bar.GetMax() + len(targets))
+		}
 
 		for _, target := range targets {
 
@@ -90,11 +99,17 @@ func (c TargetContext) Copy() error {
 			} else {
 				IncrementTargetsMoved()
 			}
+			if c.showPB {
+				bar.Add(1)
+			}
+		}
+		if c.showPB {
 			bar.Add(1)
 		}
-		bar.Add(1)
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	reportFailed(failed, "targets:")
 	return nil

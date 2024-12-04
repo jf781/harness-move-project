@@ -92,10 +92,10 @@ type ConnectorSpec struct {
 	NgCertificateRef               *string `json:"ngCertificateRef,omitempty"`
 	XvaultAwsIamServerId           *string `json:"x-vault-aws-iam-server-id,omitempty"`
 	// Git Connector Details
-	BranchName     *string           `json:"branchName,omitempty"`
-	IsAnonymous    *bool             `json:"isAnonymous,omitempty"`
-	ConnectionType *string           `json:"connectionType,omitempty"`
-	Spec           *ConnectorGitSpec `json:"spec,omitempty"`
+	BranchName     *string                `json:"branchName,omitempty"`
+	IsAnonymous    *bool                  `json:"isAnonymous,omitempty"`
+	ConnectionType *string                `json:"connectionType,omitempty"`
+	Spec           *ConnectorSpecificSpec `json:"spec,omitempty"`
 }
 
 type ConnectorAPIAccess struct {
@@ -135,9 +135,12 @@ type ConnectorCredential struct {
 }
 
 type ConnectorCredentialSpec struct {
-	ApplicationID string              `json:"applicationId"`
-	TenantID      string              `json:"tenantId"`
-	Auth          ConnectorFluffyAuth `json:"auth"`
+	ApplicationID string               `json:"applicationId,omitempty"`
+	TenantID      string               `json:"tenantId,omitempty"`
+	Auth          *ConnectorFluffyAuth `json:"auth,omitempty"`
+	EndpointUrl   string               `json:"endpointUrl,omitempty"`
+	UsernameRef   string               `json:"usernameRef,omitempty"`
+	PasswordRef   string               `json:"passwordRef,omitempty"`
 }
 
 type ConnectorFluffyAuth struct {
@@ -185,8 +188,9 @@ type ConnectorStatusError struct {
 	Code    int64  `json:"code"`
 }
 
-type ConnectorGitSpec struct {
+type ConnectorSpecificSpec struct {
 	Username    string `json:"username,omitempty"`
+	EndpointUrl string `json:"endpointUrl,omitempty"`
 	UsernameRef string `json:"usernameRef,omitempty"`
 	PasswordRef string `json:"tokenRef"`
 }

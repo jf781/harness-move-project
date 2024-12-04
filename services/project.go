@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/jf781/harness-move-project/model"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const GET_PROJECT = "/ng/api/projects/{identifier}"
@@ -36,7 +36,7 @@ func (api *ApiRequest) ValidateProject(org, project string, logger *zap.Logger) 
 		return err
 	}
 	if resp.IsError() {
-		logger.Warn("Unable to find existing project in organization",
+		logger.Info("Unable to find existing project in organization",
 			zap.String("response",
 				resp.String(),
 			),

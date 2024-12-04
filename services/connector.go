@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const CONNECTORLOOKUP = "/ng/api/connectors/listV2"
@@ -18,9 +18,10 @@ type ConnectorContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewConnectorOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) ConnectorContext {
+func NewConnectorOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) ConnectorContext {
 	return ConnectorContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -28,6 +29,7 @@ func NewConnectorOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg,
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -46,7 +48,11 @@ func (c ConnectorContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(connectors)), "Connectors    ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(connectors)), "Connectors    ")
+	}
 
 	for _, cn := range connectors {
 
@@ -67,14 +73,16 @@ func (c ConnectorContext) Copy() error {
 				zap.String("connector", cn.Connector.Name),
 				zap.Error(err),
 			)
-			return err
 		} else {
 			IncrementConnectorsMoved()
 		}
-
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }
@@ -124,11 +132,11 @@ func (api *ApiRequest) listConnectors(org, project string, logger *zap.Logger) (
 
 	connectors := []*model.ConnectorContent{}
 	for _, c := range result.Data.Content {
-		if !c.HarnessManaged && c.Status.Status == "SUCCESS" {
+		if !c.HarnessManaged {
 			newConnectors := c
 			connectors = append(connectors, &newConnectors)
 		} else {
-			logger.Warn("Skipping connector because it is managed by Harness or status is a failed state.",
+			logger.Warn("Skipping connector because it is managed by Harness.",
 				zap.String("connector", c.Connector.Name),
 				zap.String("status", c.Status.Status),
 				zap.Bool("harnessManaged", c.HarnessManaged),

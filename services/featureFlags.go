@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const FEATFLAGS = "/cf/admin/features"
@@ -18,9 +18,10 @@ type FeatureContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewFeatureFlagOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) FeatureContext {
+func NewFeatureFlagOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) FeatureContext {
 	return FeatureContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -28,6 +29,7 @@ func NewFeatureFlagOperation(api *ApiRequest, sourceOrg, sourceProject, targetOr
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -46,7 +48,11 @@ func (c FeatureContext) Copy() error {
 		return err
 	}
 
-	bar := progressbar.Default(int64(len(featureFlags)), "Feature Flags    ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(featureFlags)), "Feature Flags    ")
+	}
 
 	for _, f := range featureFlags {
 		if f.Tags == nil {
@@ -92,9 +98,13 @@ func (c FeatureContext) Copy() error {
 		} else {
 			IncrementFeatureFlagsMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }

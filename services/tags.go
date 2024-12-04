@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/jf781/harness-move-project/model"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
+	"harness-copy-project/model"
 )
 
 const TAGS = "/ng/api/serviceaccount"
@@ -17,9 +17,10 @@ type TagsContext struct {
 	targetOrg     string
 	targetProject string
 	logger        *zap.Logger
+	showPB        bool
 }
 
-func NewTagOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) TagsContext {
+func NewTagOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger, showPB bool) TagsContext {
 	return TagsContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
@@ -27,6 +28,7 @@ func NewTagOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targe
 		targetOrg:     targetOrg,
 		targetProject: targetProject,
 		logger:        logger,
+		showPB:        showPB,
 	}
 }
 
@@ -63,7 +65,11 @@ func (c TagsContext) Copy() error {
 		projectTags = append(projectTags, envTags...)
 	}
 
-	bar := progressbar.Default(int64(len(projectTags)), "Project Tags    ")
+	var bar *progressbar.ProgressBar
+
+	if c.showPB {
+		bar = progressbar.Default(int64(len(projectTags)), "Project Tags    ")
+	}
 
 	for _, t := range projectTags {
 
@@ -91,9 +97,13 @@ func (c TagsContext) Copy() error {
 		} else {
 			IncrementTagsMoved()
 		}
-		bar.Add(1)
+		if c.showPB {
+			bar.Add(1)
+		}
 	}
-	bar.Finish()
+	if c.showPB {
+		bar.Finish()
+	}
 
 	return nil
 }
