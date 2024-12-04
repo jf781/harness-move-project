@@ -161,6 +161,12 @@ pipeline:
       description: The URL of the Harness instance.
       required: false
       value: <+input>
+    - name: csvPath
+      type: String
+      default: test/csvFile.csv
+      description: The URL of the Harness instance.
+      required: false
+      value: <+input>
   properties:
     ci:
       codebase:
