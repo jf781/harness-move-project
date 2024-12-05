@@ -108,8 +108,8 @@ pipeline:
                             echo "Release is $release"
 
                           # Extract the download URL for the Linux release
-                          # releaseLinuxUrl=$(echo $release | tr '\r\n' ' ' | jq '.assets[] | select(.name | endswith("linux-amd64.tar.gz")) | .browser_download_url' | tr -d '"') || { echo "Failed to parse release JSON"; exit 1; }
-                          releaseLinuxUrl=$(echo $release | jq '.tarball_url' -r) || { echo "Failed to parse release JSON"; exit 1; }
+                          releaseLinuxUrl=$(echo $release | tr '\r\n' ' ' | jq '.assets[] | select(.name | endswith("linux-amd64.tar.gz")) | .browser_download_url' | tr -d '"') || { echo "Failed to parse release JSON"; exit 1; }
+                          # releaseLinuxUrl=$(echo $release | jq '.tarball_url' -r) || { echo "Failed to parse release JSON"; exit 1; }
 
                           echo "Release Linux URL is $releaseLinuxUrl"
 
