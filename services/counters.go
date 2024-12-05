@@ -536,5 +536,3 @@ func ResetAllCounters() {
 	variablesTotal = 0
 	variablesMoved = 0
 }
-
-

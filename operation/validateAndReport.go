@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	
+
 	"harness-copy-project/model"
 	"harness-copy-project/services"
 
-	"go.uber.org/zap"
 	"github.com/fatih/color"
+	"go.uber.org/zap"
 )
-
 
 // Function to identify the log level to report on
 func logReportingLevel(logLevel string) []string {
@@ -20,7 +19,7 @@ func logReportingLevel(logLevel string) []string {
 
 	switch logLevel {
 	case "error":
-		reportingLevel = []string{"error", }
+		reportingLevel = []string{"error"}
 	case "warn":
 		reportingLevel = []string{"error", "warn"}
 	case "info":
@@ -127,9 +126,9 @@ func printLogs(entry model.LogEntry) {
 		// Print field name and value
 		switch level {
 		case "error":
-			fmt.Printf(Red + "%s: %v\n" + Reset, fieldType.Name, fieldValue.Interface())
+			fmt.Printf(Red+"%s: %v\n"+Reset, fieldType.Name, fieldValue.Interface())
 		case "warn":
-			fmt.Printf(Yellow + "%s: %v\n" + Reset, fieldType.Name, fieldValue.Interface())
+			fmt.Printf(Yellow+"%s: %v\n"+Reset, fieldType.Name, fieldValue.Interface())
 		case "info":
 			fmt.Printf("%s: %v\n", fieldType.Name, fieldValue.Interface())
 		}
@@ -137,11 +136,11 @@ func printLogs(entry model.LogEntry) {
 }
 
 // Function to report on summary of all projects copied
-func OperationSummary (summaryReport []model.ProjectSummary ) {
+func OperationSummary(summaryReport []model.ProjectSummary) {
 	// Output summary for all projects
 	maxSourceLen := len("Source Project")
 	maxTargetLen := len("Target Project")
-	summaryColor := ""	
+	summaryColor := ""
 	for _, summary := range summaryReport {
 		if len(summary.SourceProject) > maxSourceLen {
 			maxSourceLen = len(summary.SourceProject)
@@ -165,7 +164,7 @@ func OperationSummary (summaryReport []model.ProjectSummary ) {
 			successStr = "Yes"
 			summaryColor = Green
 		}
-		fmt.Printf(summaryColor + rowFmt, summary.SourceProject, summary.TargetProject, successStr + Reset)
+		fmt.Printf(summaryColor+rowFmt, summary.SourceProject, summary.TargetProject, successStr+Reset)
 	}
 }
 
@@ -177,7 +176,6 @@ func ProjectCopySummary(sourceProject, targetProject string, copyStatus bool) mo
 	projectSummary.Successful = copyStatus
 	return projectSummary
 }
-
 
 // Function to validate and log the copy operation
 func ValidateAndLogCopy(cp Copy, logger *zap.Logger) bool {
@@ -273,8 +271,8 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) bool {
 	return true
 }
 
-func ConfirmSuccessfulCopy(entityType string, total , copied int) bool {
-  var	entityColor string
+func ConfirmSuccessfulCopy(entityType string, total, copied int) bool {
+	var entityColor string
 	var success bool
 
 	if total == copied {
@@ -287,8 +285,8 @@ func ConfirmSuccessfulCopy(entityType string, total , copied int) bool {
 		success = false
 	}
 
-	fmt.Printf(entityColor + "%v Total: %v \n" + Reset, entityType, total)
-	fmt.Printf(entityColor + "%v Moved: %v \n" + Reset, entityType, copied)
+	fmt.Printf(entityColor+"%v Total: %v \n"+Reset, entityType, total)
+	fmt.Printf(entityColor+"%v Moved: %v \n"+Reset, entityType, copied)
 
 	return success
 }

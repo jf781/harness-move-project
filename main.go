@@ -10,9 +10,9 @@ import (
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"harness-copy-project/model"
 	"harness-copy-project/operation"
 	"harness-copy-project/services"
-	"harness-copy-project/model"
 )
 
 var Version = "development"

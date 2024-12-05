@@ -15,7 +15,6 @@ const (
 	Yellow = "\033[33m"
 )
 
-
 type (
 	Config struct {
 		Token    string
