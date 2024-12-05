@@ -70,7 +70,6 @@ func (c FileStoreContext) Copy() error {
 		bar.Finish()
 	}
 
-	reportFailed(failures, "file store nodes:")
 	return nil
 }
 

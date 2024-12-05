@@ -55,8 +55,6 @@ func (c TemplateContext) Copy() error {
 		bar = progressbar.Default(int64(len(templates)), "Templates   ")
 	}
 
-	var failed []string
-
 	for _, template := range templates {
 
 		IncrementTemplatesTotal()
@@ -67,7 +65,7 @@ func (c TemplateContext) Copy() error {
 		)
 		t, err := c.getTemplate(c.sourceOrg, c.sourceProject, template.Identifier, template.VersionLabel, c.logger)
 		if err == nil {
-			newYaml := updateYaml (t.Yaml, c.targetOrg, c.targetProject)
+			newYaml := updateYaml(t.Yaml, c.targetOrg, c.targetProject)
 			err = c.createTemplate(c.targetOrg, c.targetProject, newYaml, c.logger)
 		}
 		if err != nil {
@@ -86,7 +84,6 @@ func (c TemplateContext) Copy() error {
 		bar.Finish()
 	}
 
-	reportFailed(failed, "templates:")
 	return nil
 }
 

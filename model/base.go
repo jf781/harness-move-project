@@ -28,3 +28,42 @@ type EntityValidityDetails struct {
 	Valid       bool    `json:"valid"`
 	InvalidYAML *string `json:"invalidYaml,omitempty"`
 }
+
+type LogEntry struct {
+	// Core fields
+	Level    string `json:"level"`
+	Message  string `json:"msg"`
+	Error    string `json:"error,omitempty"`
+	Response string `json:"response.message,omitempty"`
+	// Harness entity fields
+	Connector        string `json:"connector,omitempty"`
+	Environment      string `json:"environment,omitempty"`
+	EnvironmentGroup string `json:"environment group,omitempty"`
+	FeatureFlag      string `json:"feature flag,omitempty"`
+	FileStore        string `json:"file store,omitempty"`
+	Infrastructure   string `json:"infrastructure,omitempty"`
+	InputSet         string `json:"input set,omitempty"`
+	Pipeline         string `json:"pipeline,omitempty"`
+	Project          string `json:"project,omitempty"`
+	ResourceGroup    string `json:"resource group,omitempty"`
+	Role             string `json:"role,omitempty"`
+	RoleAssignments  string `json:"role assignments,omitempty"`
+	Service          string `json:"service,omitempty"`
+	ServiceAccount   string `json:"service account,omitempty"`
+	ServiceOvericde  string `json:"service override,omitempty"`
+	Tags             string `json:"tags,omitempty"`
+	TargetGroups     string `json:"target groups,omitempty"`
+	Template         string `json:"template,omitempty"`
+	Trigger          string `json:"trigger,omitempty"`
+	User             string `json:"user,omitempty"`
+	UserGroup        string `json:"user group,omitempty"`
+	Variables        string `json:"variables,omitempty"`
+}
+
+type (
+	ProjectSummary struct {
+		SourceProject string
+		TargetProject string
+		Successful    bool
+	}
+)

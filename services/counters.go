@@ -536,13 +536,3 @@ func ResetAllCounters() {
 	variablesTotal = 0
 	variablesMoved = 0
 }
-
-func ConfirmSuccessfulCopy(total int, copied int) bool {
-	if total == copied {
-		// All items copied successfully
-		return true
-	} else {
-		// One or more items failed to copy
-		return false
-	}
-}
