@@ -23,7 +23,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
-          goversion: 1.19
+          goversion: 1.22
           project_path: "."
           binary_name: "harness-copy-project"
           ldflags: ${{ format('-X "main.Version={0}"', github.ref_name) }}
