@@ -68,7 +68,7 @@ pipeline:
                           # Download the repository tarball
                           curl --silent --location https://api.github.com/repos/jf781/harness-move-project/tarball/main \
                             -H "Accept: application/vnd.github+json" \
-                            -H "Authorization: Bearer <+secrets.getValue("github_jf781_pat")>" \
+                            -H "Authorization: Bearer <+secrets.getValue("account.AcctJFToken")>" \
                             -H "X-GitHub-Api-Version: 2022-11-28" \
                             -o repo.tar.gz || { echo "Failed to download tarball"; exit 1; }
 
