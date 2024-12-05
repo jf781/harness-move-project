@@ -3,7 +3,6 @@ package operation
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"reflect"
 	"strings"
 )
@@ -45,7 +44,7 @@ func ParseAndPrintProjectLogs(logs, logLevel, sourceProject string) {
 	entryCount := len(logEntries)
 	entryIndex := int(1)
 
-	fmt.Printf(Green + "Logs from migrating project: '%v'. Log Level: '%v'. \n -- \n", sourceProject, logLevel + Reset)
+	fmt.Printf("Logs from migrating project: '%v'. Log Level: '%v'. \n -- \n", sourceProject, logLevel)
 	for _, logEntry := range logEntries {
 		entryIndex++
 		if logEntry == "" {
@@ -61,7 +60,7 @@ func ParseAndPrintProjectLogs(logs, logLevel, sourceProject string) {
 
 			// fmt.Println(entry.Message)
 
-			printNonEmptyFields(entry)
+			printLogs(entry, logLevel)
 
 			if entryIndex == entryCount {
 				fmt.Println("---")
@@ -96,7 +95,7 @@ func ParseAndPrintGlobalLogs(logs, logLevel string) {
 
 			// fmt.Println(entry.Message)
 
-			printNonEmptyFields(entry)
+			printLogs(entry, logLevel)
 
 			if entryIndex == entryCount {
 				fmt.Println("---")
@@ -109,7 +108,7 @@ func ParseAndPrintGlobalLogs(logs, logLevel string) {
 	}
 }
 
-func printNonEmptyFields(entry LogEntry) {
+func printLogs(entry LogEntry, logLevel string) {
 	v := reflect.ValueOf(entry)
 	t := v.Type()
 
@@ -123,7 +122,13 @@ func printNonEmptyFields(entry LogEntry) {
 		}
 
 		// Print field name and value
-		fmt.Printf(Red + "%s: %v\n" + Reset, fieldType.Name, fieldValue.Interface())
-		fmt.Fprintf(os.Stderr, "%s: %v\n", fieldType.Name, fieldValue.Interface())
+		switch logLevel {
+		case "error":
+			fmt.Printf(Red + "%s: %v\n" + Reset, fieldType.Name, fieldValue.Interface())
+		case "warn":
+			fmt.Printf(Yellow + "%s: %v\n" + Reset, fieldType.Name, fieldValue.Interface())
+		case "info":
+			fmt.Printf("%s: %v\n", fieldType.Name, fieldValue.Interface())
+		}
 	}
 }
