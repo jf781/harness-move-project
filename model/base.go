@@ -59,3 +59,11 @@ type LogEntry struct {
 	UserGroup        string `json:"user group,omitempty"`
 	Variables        string `json:"variables,omitempty"`
 }
+
+type (
+	ProjectSummary struct {
+		SourceProject string
+		TargetProject string
+		Successful    bool
+	}
+)
