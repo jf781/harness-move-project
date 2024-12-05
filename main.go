@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"harness-copy-project/operation"
 	"harness-copy-project/services"
+	"harness-copy-project/model"
 )
 
 var Version = "development"
@@ -20,7 +20,7 @@ var errs []error
 var globalLogger *zap.Logger
 var globalLogBuffer bytes.Buffer
 var loopLogger *zap.Logger
-var SummaryReport []operation.ProjectSummary
+var SummaryReport []model.ProjectSummary
 
 func main() {
 
@@ -186,7 +186,7 @@ func run(c *cli.Context) error {
 
 		// Check for missing or empty values
 		if cp.Source.Org == "" || cp.Source.Project == "" || cp.Target.Org == "" {
-			loopLogger.Warn("Invalid CSV data. Missing required fields.",
+			loopLogger.Error("Invalid CSV data. Missing required fields.",
 				zap.String("Source Org", cp.Source.Org),
 				zap.String("Source Project", cp.Source.Project),
 				zap.String("Target Org", cp.Target.Org),
@@ -199,7 +199,7 @@ func run(c *cli.Context) error {
 			cp.Target.Project = cp.Source.Project
 		}
 
-		fmt.Println(color.GreenString("Moving project '%v' from org '%v' to org '%v'. The target project will be named '%v'", cp.Source.Project, cp.Source.Org, cp.Target.Org, cp.Target.Project))
+		fmt.Printf("Moving project '%v' from org '%v' to org '%v'. The target project will be named '%v'\n", cp.Source.Project, cp.Source.Org, cp.Target.Org, cp.Target.Project)
 
 		// Execute the copy operation from source to target operation
 		if err := cp.Exec(); err != nil {
@@ -232,32 +232,7 @@ func run(c *cli.Context) error {
 	// Parse and filter error messages for the global operation
 	operation.ParseAndPrintGlobalLogs(globalLogBuffer.String(), logLevel)
 
-	// Output summary for all projects
-	maxSourceLen := len("Source Project")
-	maxTargetLen := len("Target Project")
-	for _, summary := range SummaryReport {
-		if len(summary.SourceProject) > maxSourceLen {
-			maxSourceLen = len(summary.SourceProject)
-		}
-		if len(summary.TargetProject) > maxTargetLen {
-			maxTargetLen = len(summary.TargetProject)
-		}
-	}
-
-	headerFmt := fmt.Sprintf("%%-%ds  %%-%ds  %%s\n", maxSourceLen, maxTargetLen)
-	rowFmt := fmt.Sprintf("%%-%ds  %%-%ds  %%s\n", maxSourceLen, maxTargetLen)
-
-	fmt.Println("\nSummary Report:")
-	fmt.Printf(headerFmt, "Source Project", "Target Project", "Successful")
-	fmt.Println(strings.Repeat("-", maxSourceLen+maxTargetLen+15))
-
-	for _, summary := range SummaryReport {
-		successStr := "No"
-		if summary.Successful {
-			successStr = "Yes"
-		}
-		fmt.Printf(rowFmt, summary.SourceProject, summary.TargetProject, successStr)
-	}
+	operation.OperationSummary(SummaryReport)
 
 	return nil
 }
