@@ -53,8 +53,6 @@ func (c TargetContext) Copy() error {
 		bar = progressbar.Default(int64(len(envs)), "Target Groups    ")
 	}
 
-	var failed []string
-
 	for _, env := range envs {
 		e := env.Environment
 		targets, err := c.api.listTargets(c.sourceOrg, c.sourceProject, e.Identifier, c.logger)
@@ -111,7 +109,6 @@ func (c TargetContext) Copy() error {
 		bar.Finish()
 	}
 
-	reportFailed(failed, "targets:")
 	return nil
 }
 

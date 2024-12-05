@@ -54,7 +54,6 @@ func (c EnvGroupContext) Copy() error {
 	if c.showPB {
 		bar = progressbar.Default(int64(len(envGroups)), "Environment Groups:    ")
 	}
-	var failed []string
 
 	for _, eg := range envGroups {
 
@@ -92,7 +91,6 @@ func (c EnvGroupContext) Copy() error {
 		bar.Finish()
 	}
 
-	reportFailed(failed, "Environment Groups:")
 	return nil
 }
 

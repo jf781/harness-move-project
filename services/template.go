@@ -55,8 +55,6 @@ func (c TemplateContext) Copy() error {
 		bar = progressbar.Default(int64(len(templates)), "Templates   ")
 	}
 
-	var failed []string
-
 	for _, template := range templates {
 
 		IncrementTemplatesTotal()
@@ -86,7 +84,6 @@ func (c TemplateContext) Copy() error {
 		bar.Finish()
 	}
 
-	reportFailed(failed, "templates:")
 	return nil
 }
 
