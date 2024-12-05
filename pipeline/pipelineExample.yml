@@ -105,11 +105,17 @@ pipeline:
                             -H "X-GitHub-Api-Version: 2022-11-28" \
                             https://api.github.com/repos/jf781/harness-move-project/releases/latest) || { echo "Failed to fetch release information"; exit 1; }
 
+                            echo "Release is $release"
+
                           # Extract the download URL for the Linux release
                           releaseLinuxUrl=$(echo $release | tr '\r\n' ' ' | jq '.assets[] | select(.name | endswith("linux-amd64.tar.gz")) | .browser_download_url' | tr -d '"') || { echo "Failed to parse release JSON"; exit 1; }
 
+                          echo "Release Linux URL is $releaseLinuxUrl"
+
                           # Download the release tarball
                           curl --silent --location $releaseLinuxUrl -o harness.tar.gz || { echo "Failed to download harness tarball"; exit 1; }
+
+                          echo "Downloaded harness.tar.gz"
 
                           # Extract the harness tarball
                           tar -xvf harness.tar.gz || { echo "Failed to extract harness.tar.gz"; exit 1; }
