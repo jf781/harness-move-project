@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/go-resty/resty/v2"
 	"gopkg.in/yaml.v3"
 	"harness-copy-project/model"
@@ -96,13 +95,6 @@ func handleErrorResponse(resp *resty.Response) error {
 
 func removeNewLine(value string) string {
 	return strings.ReplaceAll(value, "\n", "")
-}
-
-func reportFailed(failed []string, description string) {
-	if len(failed) > 0 {
-		fmt.Println(color.RedString(fmt.Sprintf("Failed %s %d", description, len(failed))))
-		fmt.Println(color.RedString(strings.Join(failed, "\n")))
-	}
 }
 
 func ValidateCopy(booleans []bool) bool {
