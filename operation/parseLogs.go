@@ -3,6 +3,7 @@ package operation
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 )
@@ -44,7 +45,7 @@ func ParseAndPrintProjectLogs(logs, logLevel, sourceProject string) {
 	entryCount := len(logEntries)
 	entryIndex := int(1)
 
-	fmt.Printf("Logs from migrating project: '%v'. Log Level: '%v'. \n -- \n", sourceProject, logLevel)
+	fmt.Printf(Green + "Logs from migrating project: '%v'. Log Level: '%v'. \n -- \n", sourceProject, logLevel + Reset)
 	for _, logEntry := range logEntries {
 		entryIndex++
 		if logEntry == "" {
@@ -122,6 +123,7 @@ func printNonEmptyFields(entry LogEntry) {
 		}
 
 		// Print field name and value
-		fmt.Printf("%s: %v\n", fieldType.Name, fieldValue.Interface())
+		fmt.Printf(Red + "%s: %v\n" + Reset, fieldType.Name, fieldValue.Interface())
+		fmt.Fprintf(os.Stderr, "%s: %v\n", fieldType.Name, fieldValue.Interface())
 	}
 }

@@ -108,8 +108,8 @@ pipeline:
                             echo "Release is $release"
 
                           # Extract the download URL for the Linux release
-                          # releaseLinuxUrl=$(echo $release | tr '\r\n' ' ' | jq '.assets[] | select(.name | endswith("linux-amd64.tar.gz")) | .browser_download_url' | tr -d '"') || { echo "Failed to parse release JSON"; exit 1; }
-                          releaseLinuxUrl=$(echo $release | jq '.tarball_url' -r) || { echo "Failed to parse release JSON"; exit 1; }
+                          releaseLinuxUrl=$(echo $release | tr '\r\n' ' ' | jq '.assets[] | select(.name | endswith("linux-amd64.tar.gz")) | .browser_download_url' | tr -d '"') || { echo "Failed to parse release JSON"; exit 1; }
+                          # releaseLinuxUrl=$(echo $release | jq '.tarball_url' -r) || { echo "Failed to parse release JSON"; exit 1; }
 
                           echo "Release Linux URL is $releaseLinuxUrl"
 
@@ -138,7 +138,7 @@ pipeline:
 
                           # Initiates the Harness move project process
                           if [ -f "repo/test/csvFile.csv" ]; then
-                            ./harness-move-project --csvPath repo/test/csvFile.csv --accountId <+pipeline.variables.accountId> --apiToken <+secrets.getValue("harness_api_key")> --baseUrl <+pipeline.variables.baseUrl> || { echo "Failed to execute the utility"; exit 1; }
+                            ./harness-copy-project --csvPath repo/test/csvFile.csv --accountId <+pipeline.variables.accountId> --apiToken <+secrets.getValue("harness_api_key")> --baseUrl <+pipeline.variables.baseUrl> --copyCDComponents || { echo "Failed to execute the utility"; exit 1; }
                           else
                             echo "Failed find csvFile"
                             exit 1
