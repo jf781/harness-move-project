@@ -39,7 +39,7 @@ func ParseAndPrintProjectLogs(logs, logLevel, sourceProject string) {
 
 	reportingLevel := logReportingLevel(logLevel)
 
-	fmt.Printf("Logs from migrating project: '%v'. Log Level: '%v'. \n -- \n", sourceProject, logLevel)
+	fmt.Printf("Logs from migrating project: '%v'. Log Level: '%v'. \n ---- \n", sourceProject, logLevel)
 	for _, logEntry := range logEntries {
 		entryIndex++
 		if logEntry == "" {
@@ -55,16 +55,53 @@ func ParseAndPrintProjectLogs(logs, logLevel, sourceProject string) {
 		for _, level := range reportingLevel {
 			if level == entry.Level {
 
-				// fmt.Println(entry.Message)
+				printLogs(entry)
+
+				if entryIndex == entryCount {
+					fmt.Println(" --")
+					fmt.Printf("--- End of log entries for project: '%v' --- \n", sourceProject)
+					fmt.Println(" --")
+				} else {
+					fmt.Println(" ---- ")
+				}
+			}
+		}
+	}
+}
+
+// Function to report on logs from global operations
+func ParseAndPrintGlobalLogs(logs, logLevel string) {
+	logEntries := strings.Split(logs, "\n")
+
+	entryCount := len(logEntries)
+	entryIndex := int(1)
+
+	reportingLevel := logReportingLevel(logLevel)
+
+	fmt.Printf("Logs encountered when during global operations. \n ---- \n")
+	for _, logEntry := range logEntries {
+		entryIndex++
+		if logEntry == "" {
+			continue
+		}
+		var entry model.LogEntry
+		err := json.Unmarshal([]byte(logEntry), &entry)
+		if err != nil {
+			fmt.Println("Failed to parse log entry:", err)
+			continue
+		}
+
+		for _, level := range reportingLevel {
+			if level == entry.Level {
 
 				printLogs(entry)
 
 				if entryIndex == entryCount {
-					fmt.Println("---")
-					fmt.Printf("--- End of log entries for project: '%v' --- \n", sourceProject)
-					fmt.Println("---")
+					fmt.Println(" --")
+					fmt.Printf("--- End of log entries for global opreration: --- \n")
+					fmt.Println(" --")
 				} else {
-					fmt.Println("---")
+					fmt.Println(" ---- ")
 				}
 			}
 		}
@@ -98,47 +135,6 @@ func printLogs(entry model.LogEntry) {
 		}
 	}
 }
-
-// Function to report on logs from global operations
-func ParseAndPrintGlobalLogs(logs, logLevel string) {
-	logEntries := strings.Split(logs, "\n")
-
-	entryCount := len(logEntries)
-	entryIndex := int(1)
-
-	reportingLevel := logReportingLevel(logLevel)
-
-	fmt.Printf("Logs encountered when during global operations. \n -- \n")
-	for _, logEntry := range logEntries {
-		entryIndex++
-		if logEntry == "" {
-			continue
-		}
-		var entry model.LogEntry
-		err := json.Unmarshal([]byte(logEntry), &entry)
-		if err != nil {
-			fmt.Println("Failed to parse log entry:", err)
-			continue
-		}
-
-		for _, level := range reportingLevel {
-			if level == entry.Level {
-
-				printLogs(entry)
-
-				if entryIndex == entryCount {
-					fmt.Println("---")
-					fmt.Printf("--- End of log entries for global opreration: --- \n")
-					fmt.Println("---")
-				} else {
-					fmt.Println("---")
-				}
-			}
-		}
-	}
-}
-
-
 
 // Function to report on summary of all projects copied
 func OperationSummary (summaryReport []model.ProjectSummary ) {
