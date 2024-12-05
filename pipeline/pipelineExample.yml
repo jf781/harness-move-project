@@ -138,7 +138,7 @@ pipeline:
 
                           # Initiates the Harness move project process
                           if [ -f "repo/test/csvFile.csv" ]; then
-                            ./harness-move-project --csvPath repo/test/csvFile.csv --accountId <+pipeline.variables.accountId> --apiToken <+secrets.getValue("harness_api_key")> --baseUrl <+pipeline.variables.baseUrl> || { echo "Failed to execute the utility"; exit 1; }
+                            ./harness-copy-project --csvPath repo/test/csvFile.csv --accountId <+pipeline.variables.accountId> --apiToken <+secrets.getValue("harness_api_key")> --baseUrl <+pipeline.variables.baseUrl> || { echo "Failed to execute the utility"; exit 1; }
                           else
                             echo "Failed find csvFile"
                             exit 1
