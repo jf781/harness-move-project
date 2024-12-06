@@ -9,7 +9,6 @@ import (
 	"harness-copy-project/model"
 	"harness-copy-project/services"
 
-	"github.com/fatih/color"
 	"go.uber.org/zap"
 )
 
@@ -213,12 +212,12 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) bool {
 				zap.String("Source Project", cp.Source.Project),
 				zap.Error(err),
 			)
-			fmt.Println(color.RedString("Error encountered while freezing project: '%v'.  Err: %v ", cp.Source.Project, err))
+			fmt.Printf( Red + "Error encountered while freezing project: '%v'.  Err: %v \n" + Reset, cp.Source.Project, err)
 			return false
 		}
 	} else {
-		fmt.Println(color.RedString("Error encountered while copying project: '%v'.", cp.Target.Project))
-		fmt.Println(color.RedString("Source project: %v has not be froozen. \n", cp.Source.Project))
+		fmt.Printf( Red + "Error encountered while copying project: '%v'. \n" + Reset, cp.Target.Project)
+		fmt.Printf( Red + "Source project: %v has not be froozen. \n" + Reset, cp.Source.Project)
 		return false
 	}
 
