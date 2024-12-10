@@ -212,12 +212,12 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) bool {
 				zap.String("Source Project", cp.Source.Project),
 				zap.Error(err),
 			)
-			fmt.Printf( Red + "Error encountered while freezing project: '%v'.  Err: %v \n" + Reset, cp.Source.Project, err)
+			fmt.Printf(Red+"Error encountered while freezing project: '%v'.  Err: %v \n"+Reset, cp.Source.Project, err)
 			return false
 		}
 	} else {
-		fmt.Printf( Red + "Error encountered while copying project: '%v'. \n" + Reset, cp.Target.Project)
-		fmt.Printf( Red + "Source project: %v has not be froozen. \n" + Reset, cp.Source.Project)
+		fmt.Printf(Red+"Error encountered while copying project: '%v'. \n"+Reset, cp.Target.Project)
+		fmt.Printf(Red+"Source project: %v has not be froozen. \n"+Reset, cp.Source.Project)
 		return false
 	}
 
