@@ -24,24 +24,26 @@ type ServiceListContent struct {
 }
 
 type Service struct {
-	AccountID         string    `json:"accountId"`
-	Identifier        string    `json:"identifier"`
-	OrgIdentifier     string    `json:"orgIdentifier"`
-	ProjectIdentifier string    `json:"projectIdentifier"`
-	Name              string    `json:"name"`
-	Description       *string   `json:"description,omitempty"`
-	Deleted           bool      `json:"deleted"`
-	Yaml              string    `json:"yaml"`
-	StoreType         StoreType `json:"storeType"`
+	AccountID         string            `json:"accountId"`
+	Identifier        string            `json:"identifier"`
+	OrgIdentifier     string            `json:"orgIdentifier"`
+	ProjectIdentifier string            `json:"projectIdentifier"`
+	Name              string            `json:"name"`
+	Description       *string           `json:"description,omitempty"`
+	Deleted           bool              `json:"deleted"`
+	Yaml              string            `json:"yaml"`
+	StoreType         StoreType         `json:"storeType"`
+	Tags              map[string]string `json:"tags"`
 }
 
 // CREATE SERVICE
 
 type CreateServiceRequest struct {
-	Identifier        string  `json:"identifier"`
-	OrgIdentifier     string  `json:"orgIdentifier"`
-	ProjectIdentifier string  `json:"projectIdentifier"`
-	Name              string  `json:"name"`
-	Description       *string `json:"description,omitempty"`
-	Yaml              string  `json:"yaml"`
+	Identifier        string            `json:"identifier"`
+	OrgIdentifier     string            `json:"orgIdentifier"`
+	ProjectIdentifier string            `json:"projectIdentifier"`
+	Name              string            `json:"name"`
+	Description       *string           `json:"description,omitempty"`
+	Tags              map[string]string `json:"tags"`
+	Yaml              string            `json:"yaml"`
 }

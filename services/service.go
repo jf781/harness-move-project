@@ -69,6 +69,7 @@ func (c ServiceContext) Copy() error {
 			Identifier:        s.Service.Identifier,
 			Name:              s.Service.Name,
 			Description:       s.Service.Description,
+			Tags:              s.Service.Tags,
 			Yaml:              newYaml,
 		}
 		if err := c.createService(service, c.logger); err != nil {
