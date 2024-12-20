@@ -7,13 +7,13 @@ type GetServiceACcountResponse struct {
 }
 
 type GetServiceAccountData struct {
-	Identifier         string      `json:"identifier"`
-	Name               string      `json:"name"`
-	Email              string      `json:"email"`
-	Description        string      `json:"description"`
-	Tags               Tags        `json:"tags"`
-	AccountIdentifier  string      `json:"accountIdentifier"`
-	OrgIdentifier      string      `json:"orgIdentifier"`
-	ProjectIdentifier  string      `json:"projectIdentifier"`
-	GovernanceMetadata interface{} `json:"governanceMetadata"`
+	Identifier         string            `json:"identifier"`
+	Name               string            `json:"name"`
+	Email              string            `json:"email"`
+	Description        string            `json:"description"`
+	Tags               map[string]string `json:"tags"`
+	AccountIdentifier  string            `json:"accountIdentifier"`
+	OrgIdentifier      string            `json:"orgIdentifier"`
+	ProjectIdentifier  string            `json:"projectIdentifier"`
+	GovernanceMetadata interface{}       `json:"governanceMetadata"`
 }

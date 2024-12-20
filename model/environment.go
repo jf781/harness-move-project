@@ -21,26 +21,28 @@ type ListEnvironmentContent struct {
 }
 
 type Environment struct {
-	Account           string    `json:"accountId"`
-	OrgIdentifier     string    `json:"orgIdentifier"`
-	ProjectIdentifier string    `json:"projectIdentifier"`
-	Identifier        string    `json:"identifier"`
-	Name              string    `json:"name"`
-	Description       *string   `json:"description,omitempty"`
-	Type              string    `json:"type"`
-	Deleted           bool      `json:"deleted"`
-	Yaml              string    `json:"yaml"`
-	Color             string    `json:"color"`
-	StoreType         StoreType `json:"storeType"`
+	Account           string            `json:"accountId"`
+	OrgIdentifier     string            `json:"orgIdentifier"`
+	ProjectIdentifier string            `json:"projectIdentifier"`
+	Identifier        string            `json:"identifier"`
+	Name              string            `json:"name"`
+	Description       *string           `json:"description,omitempty"`
+	Type              string            `json:"type"`
+	Deleted           bool              `json:"deleted"`
+	Tags              map[string]string `json:"tags"`
+	Yaml              string            `json:"yaml"`
+	Color             string            `json:"color"`
+	StoreType         StoreType         `json:"storeType"`
 }
 
 type CreateEnvironmentRequest struct {
-	OrgIdentifier     string  `json:"orgIdentifier"`
-	ProjectIdentifier string  `json:"projectIdentifier"`
-	Identifier        string  `json:"identifier"`
-	Name              string  `json:"name"`
-	Description       *string `json:"description,omitempty"`
-	Color             string  `json:"color"`
-	Type              string  `json:"type"`
-	Yaml              string  `json:"yaml"`
+	OrgIdentifier     string            `json:"orgIdentifier"`
+	ProjectIdentifier string            `json:"projectIdentifier"`
+	Identifier        string            `json:"identifier"`
+	Name              string            `json:"name"`
+	Description       *string           `json:"description,omitempty"`
+	Color             string            `json:"color"`
+	Type              string            `json:"type"`
+	Tags              map[string]string `json:"tags"`
+	Yaml              string            `json:"yaml"`
 }
