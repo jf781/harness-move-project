@@ -74,32 +74,34 @@ func ParseAndPrintGlobalLogs(logs, logLevel string) {
 	entryCount := len(logEntries)
 	entryIndex := int(1)
 
-	reportingLevel := logReportingLevel(logLevel)
+	if entryCount != 3 {
+		reportingLevel := logReportingLevel(logLevel)
 
-	fmt.Printf("Logs encountered when during global operations. \n ---- \n")
-	for _, logEntry := range logEntries {
-		entryIndex++
-		if logEntry == "" {
-			continue
-		}
-		var entry model.LogEntry
-		err := json.Unmarshal([]byte(logEntry), &entry)
-		if err != nil {
-			fmt.Println("Failed to parse log entry:", err)
-			continue
-		}
+		fmt.Printf("Logs encountered when during global operations. \n ---- \n")
+		for _, logEntry := range logEntries {
+			entryIndex++
+			if logEntry == "" {
+				continue
+			}
+			var entry model.LogEntry
+			err := json.Unmarshal([]byte(logEntry), &entry)
+			if err != nil {
+				fmt.Println("Failed to parse log entry:", err)
+				continue
+			}
 
-		for _, level := range reportingLevel {
-			if level == entry.Level {
+			for _, level := range reportingLevel {
+				if level == entry.Level {
 
-				printLogs(entry)
+					printLogs(entry)
 
-				if entryIndex == entryCount {
-					fmt.Println(" --")
-					fmt.Printf("--- End of log entries for global opreration: --- \n")
-					fmt.Println(" --")
-				} else {
-					fmt.Println(" ---- ")
+					if entryIndex == entryCount {
+						fmt.Println(" --")
+						fmt.Printf("--- End of log entries for global opreration: --- \n")
+						fmt.Println(" --")
+					} else {
+						fmt.Println(" ---- ")
+					}
 				}
 			}
 		}
@@ -157,10 +159,10 @@ func OperationSummary(summaryReport []model.ProjectSummary) {
 	fmt.Println(strings.Repeat("-", maxSourceLen+maxTargetLen+15))
 
 	for _, summary := range summaryReport {
-		successStr := "No"
+		successStr := summary.Successful
 		summaryColor = Red
-		if summary.Successful {
-			successStr = "Yes"
+		if summary.Successful == "Successful" {
+			successStr = summary.Successful
 			summaryColor = Green
 		}
 		fmt.Printf(summaryColor+rowFmt, summary.SourceProject, summary.TargetProject, successStr+Reset)
@@ -168,7 +170,7 @@ func OperationSummary(summaryReport []model.ProjectSummary) {
 }
 
 // Function to create a summary report for each project
-func ProjectCopySummary(sourceProject, targetProject string, copyStatus bool) model.ProjectSummary {
+func ProjectCopySummary(sourceProject, targetProject, copyStatus string) model.ProjectSummary {
 	var projectSummary model.ProjectSummary
 	projectSummary.SourceProject = sourceProject
 	projectSummary.TargetProject = targetProject
@@ -177,7 +179,7 @@ func ProjectCopySummary(sourceProject, targetProject string, copyStatus bool) mo
 }
 
 // Function to validate and log the copy operation
-func ValidateAndLogCopy(cp Copy, logger *zap.Logger) bool {
+func ValidateAndLogCopy(cp Copy, logger *zap.Logger) string {
 	var projectErr []bool
 
 	// Output project copy complete message
@@ -213,12 +215,12 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) bool {
 				zap.Error(err),
 			)
 			fmt.Printf(Red+"Error encountered while freezing project: '%v'.  Err: %v \n"+Reset, cp.Source.Project, err)
-			return false
+			return "Failed to freeze source project"
 		}
 	} else {
 		fmt.Printf(Red+"Error encountered while copying project: '%v'. \n"+Reset, cp.Target.Project)
 		fmt.Printf(Red+"Source project: %v has not be froozen. \n"+Reset, cp.Source.Project)
-		return false
+		return "Errors encounter copying project"
 	}
 
 	// Output project entity counts to logger
@@ -267,7 +269,7 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) bool {
 		zap.Int("VariablesMoved", services.GetVariablesMoved()),
 	)
 
-	return true
+	return "Successful"
 }
 
 func ConfirmSuccessfulCopy(entityType string, total, copied int) bool {

@@ -64,6 +64,6 @@ type (
 	ProjectSummary struct {
 		SourceProject string
 		TargetProject string
-		Successful    bool
+		Successful    string
 	}
 )
