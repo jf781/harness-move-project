@@ -57,6 +57,11 @@ func (c ServiceAccountContext) Copy() error {
 
 		IncrementServiceAccountsTotal()
 
+		for t := range sa.Tags {
+			_ = t
+			IncrementServiceAccountTagsTotal()
+		}
+
 		c.logger.Info("Processing service account",
 			zap.String("service account", sa.Email),
 			zap.String("targetProject", c.targetProject),
@@ -178,6 +183,11 @@ func (api *ApiRequest) createServiceAccount(serviceAccount *model.GetServiceAcco
 			)
 		}
 		return handleErrorResponse(resp)
+	}
+
+	for t := range serviceAccount.Tags {
+		_ = t
+		IncrementServiceAccountTagsMoved()
 	}
 
 	return nil

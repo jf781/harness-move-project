@@ -2,7 +2,7 @@ package services
 
 import (
 	"encoding/json"
-
+	"fmt"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
 	"harness-copy-project/model"
@@ -33,6 +33,7 @@ func NewTagOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targe
 }
 
 func (c TagsContext) Copy() error {
+	fmt.Printf("Tag Operation!!!!!!!!!!!!!!\n")
 
 	c.logger.Info("Copying Tags",
 		zap.String("project", c.sourceProject),
@@ -72,8 +73,9 @@ func (c TagsContext) Copy() error {
 	}
 
 	for _, t := range projectTags {
+		fmt.Printf("Project: %v, env: %v, tag: %v\n", c.sourceProject, t.Name, t.Identifier)
 
-		IncrementTagsTotal()
+		IncrementServiceAccountTagsTotal()
 
 		c.logger.Info("Processing tag",
 			zap.String("tag", t.Name),
@@ -95,7 +97,7 @@ func (c TagsContext) Copy() error {
 				zap.Error(err),
 			)
 		} else {
-			IncrementTagsMoved()
+			IncrementServiceAccountTagsMoved()
 		}
 		if c.showPB {
 			bar.Add(1)

@@ -96,6 +96,11 @@ func (c ProjectContext) Copy() error {
 		return err
 	}
 
+	for t := range sourceProject.Tags {
+		_ = t
+		IncrementProjectTagsTotal()
+	}
+
 	newProject := &model.Project{
 		Identifier:    c.targetProject,
 		Name:          sourceProject.Name,
@@ -229,5 +234,11 @@ func (api *ApiRequest) CreateProject(project *model.Project, logger *zap.Logger)
 			zap.Error(err),
 		)
 	}
+
+	for t := range project.Tags {
+		_ = t
+		IncrementProjectTagsMoved()
+	}
+
 	return nil
 }

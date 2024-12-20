@@ -8,6 +8,8 @@ import (
 	"harness-copy-project/model"
 )
 
+const ENVIRONMENTS = "/ng/api/environmentsV2"
+
 type EnvironmentContext struct {
 	api           *ApiRequest
 	sourceOrg     string
@@ -56,6 +58,11 @@ func (c EnvironmentContext) Copy() error {
 
 		IncrementEnvironmentsTotal()
 
+		for t := range e.Tags {
+			_ = t
+			IncrementEnvironmentTagsTotal()
+		}
+
 		c.logger.Info("Processing environments",
 			zap.String("environemnt", e.Name),
 			zap.String("targetProject", c.targetProject),
@@ -70,6 +77,7 @@ func (c EnvironmentContext) Copy() error {
 			Description:       e.Description,
 			Color:             e.Color,
 			Type:              e.Type,
+			Tags:              e.Tags,
 			Yaml:              newYaml,
 		}
 		if err := c.api.createEnvironment(req, c.logger); err != nil {
@@ -109,7 +117,7 @@ func (api *ApiRequest) listEnvironments(org, project string, logger *zap.Logger)
 			"projectIdentifier": project,
 			"size":              "1000",
 		}).
-		Get(api.BaseURL + "/ng/api/environmentsV2")
+		Get(api.BaseURL + ENVIRONMENTS)
 	if err != nil {
 		logger.Error("Failed to request to list of environments",
 			zap.Error(err),
@@ -154,7 +162,7 @@ func (api *ApiRequest) createEnvironment(env *model.CreateEnvironmentRequest, lo
 		SetQueryParams(map[string]string{
 			"accountIdentifier": api.Account,
 		}).
-		Post(api.BaseURL + "/ng/api/environmentsV2")
+		Post(api.BaseURL + ENVIRONMENTS)
 	if err != nil {
 		logger.Error("Failed to send request to create ",
 			zap.String("Environment", env.Name),
@@ -182,6 +190,11 @@ func (api *ApiRequest) createEnvironment(env *model.CreateEnvironmentRequest, lo
 			)
 		}
 		return handleErrorResponse(resp)
+	}
+
+	for t := range env.Tags {
+		_ = t
+		IncrementEnvironmentTagsMoved()
 	}
 
 	return nil

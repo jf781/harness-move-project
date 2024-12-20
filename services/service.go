@@ -58,6 +58,11 @@ func (c ServiceContext) Copy() error {
 
 		IncrementServicesTotal()
 
+		for t := range s.Service.Tags {
+			_ = t
+			IncrementServiceTagsTotal()
+		}
+
 		c.logger.Info("Processing service",
 			zap.String("service", s.Service.Name),
 			zap.String("targetProject", c.targetProject),
@@ -183,6 +188,11 @@ func (c ServiceContext) createService(service *model.CreateServiceRequest, logge
 			)
 		}
 		return handleErrorResponse(resp)
+	}
+
+	for t := range service.Tags {
+		_ = t
+		IncrementServiceTagsMoved()
 	}
 
 	return nil
