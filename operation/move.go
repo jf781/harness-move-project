@@ -40,6 +40,55 @@ type (
 	}
 )
 
+func (v *Copy) ValidateProjects() bool {
+
+	api := services.ApiRequest{
+		Client:  resty.New(),
+		Token:   v.Config.Token,
+		Account: v.Config.Account,
+		BaseURL: v.Config.BaseURL,
+	}
+
+	var validateSourcePrj, validateTargetPrj bool
+
+	// Validate Source project
+	if api.ValidateProject(v.Source.Org, v.Source.Project, v.Config.Logger) {
+		v.Config.Logger.Info("Source project exists",
+			zap.String("Project", v.Source.Project),
+			zap.String("Org", v.Source.Org),
+		)
+		validateSourcePrj = true
+	} else {
+		v.Config.Logger.Error("Failed to confirm source project exists",
+			zap.String("Project", v.Source.Project),
+			zap.String("Org", v.Source.Org),
+		)
+		validateSourcePrj = false
+	}
+
+	// Validate Target project
+	if api.ValidateProject(v.Target.Org, v.Target.Project, v.Config.Logger) {
+		v.Config.Logger.Error("Target project already exists",
+			zap.String("Project", v.Target.Project),
+			zap.String("Org", v.Target.Org),
+		)
+		validateTargetPrj = false
+	} else {
+		v.Config.Logger.Info("Target project does not exist",
+			zap.String("Project", v.Target.Project),
+			zap.String("Org", v.Target.Org),
+		)
+		validateTargetPrj = true
+	}
+
+	if validateSourcePrj && validateTargetPrj {
+		return true
+	} else {
+		return false
+	}
+
+}
+
 func (o *Copy) Exec() error {
 
 	api := services.ApiRequest{
@@ -51,17 +100,10 @@ func (o *Copy) Exec() error {
 
 	var operations []services.Operation
 
-	// SOURCE PORJECT MUST EXIST.  RETURNS AN ERROR IF CAN'T BE FOUND/DOES NOT EXIST.
-	if err := api.ValidateProject(o.Source.Org, o.Source.Project, o.Config.Logger); err != nil {
-		return err
-	}
-	if err := api.ValidateProject(o.Target.Org, o.Target.Project, o.Config.Logger); err != nil {
+	if o.Config.CopyCD || o.Config.CopyFF {
 		// CREATE NEW PROJECT IF IT DOES NOT EXIST IN THE TARGET ORG
 		operations = append(operations, services.NewProjectOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger))
 		operations = append(operations, services.RemoveCurrentUserOperation(&api, o.Target.Org, o.Target.Project, o.Config.Logger))
-	}
-
-	if o.Config.CopyCD || o.Config.CopyFF {
 		operations = append(operations, services.NewConnectorOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger, o.Config.ShowPB))
 		operations = append(operations, services.NewEnvironmentOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger, o.Config.ShowPB))
 		operations = append(operations, services.NewEnvGroupOperation(&api, o.Source.Org, o.Source.Project, o.Target.Org, o.Target.Project, o.Config.Logger, o.Config.ShowPB))
@@ -102,16 +144,16 @@ func (o *Copy) Exec() error {
 	return nil
 }
 
-func (o *Copy) Freeze() error {
+func (f *Copy) Freeze() error {
 
 	api := services.ApiRequest{
 		Client:  resty.New(),
-		Token:   o.Config.Token,
-		Account: o.Config.Account,
-		BaseURL: o.Config.BaseURL,
+		Token:   f.Config.Token,
+		Account: f.Config.Account,
+		BaseURL: f.Config.BaseURL,
 	}
 
-	freezeOperation := services.FreezeSourceProjectOperation(&api, o.Source.Org, o.Source.Project, o.Config.Logger)
+	freezeOperation := services.FreezeSourceProjectOperation(&api, f.Source.Org, f.Source.Project, f.Config.Logger)
 	if err := freezeOperation.Copy(); err != nil {
 		return err
 	}
