@@ -11,11 +11,9 @@ import (
 const GET_PROJECT = "/ng/api/projects/{identifier}"
 
 // Validate if the project exists
-func (api *ApiRequest) ValidateProject(org, project string, logger *zap.Logger) error {
+func (api *ApiRequest) ValidateProject(org, project string, logger *zap.Logger) bool {
 
-	logger.Info("Validating if project exists",
-		zap.String("project", project),
-	)
+	logger.Info("Validating if project exists in the organization")
 
 	IncrementApiCalls()
 
@@ -33,7 +31,7 @@ func (api *ApiRequest) ValidateProject(org, project string, logger *zap.Logger) 
 			zap.String("Project", project),
 			zap.Error(err),
 		)
-		return err
+		return false
 	}
 	if resp.IsError() {
 		logger.Info("Unable to find existing project in organization",
@@ -41,7 +39,7 @@ func (api *ApiRequest) ValidateProject(org, project string, logger *zap.Logger) 
 				resp.String(),
 			),
 		)
-		return handleErrorResponse(resp)
+		return false
 	}
 	result := model.GetProjectResponse{}
 	err = json.Unmarshal(resp.Body(), &result)
@@ -49,14 +47,15 @@ func (api *ApiRequest) ValidateProject(org, project string, logger *zap.Logger) 
 		logger.Error("Failed to parse response from API",
 			zap.Error(err),
 		)
-		return err
+		return false
 	}
 
 	if result.Data == nil {
 		logger.Warn("Project does not exist.  Will be creating it")
-		return fmt.Errorf("org %s or project %s not exist", org, project)
+		fmt.Printf("org %s or project %s not exist", org, project)
+		return false
 	}
-	return nil
+	return true
 }
 
 // Create new project if it does not exist
