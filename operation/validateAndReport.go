@@ -199,7 +199,10 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) string {
 	projectErr = append(projectErr, ConfirmSuccessfulCopy("Roles", services.GetRolesTotal(), services.GetRolesMoved()))
 	projectErr = append(projectErr, ConfirmSuccessfulCopy("Service Overrides", services.GetOverridesTotal(), services.GetOverridesMoved()))
 	projectErr = append(projectErr, ConfirmSuccessfulCopy("Services", services.GetServicesTotal(), services.GetServicesMoved()))
-	projectErr = append(projectErr, ConfirmSuccessfulCopy("Tags", services.GetTagsTotal(), services.GetTagsMoved()))
+	projectErr = append(projectErr, ConfirmSuccessfulCopy("Project Tags", services.GetProjectTagsTotal(), services.GetProjectTagsMoved()))
+	projectErr = append(projectErr, ConfirmSuccessfulCopy("Service Tags", services.GetServiceTagsTotal(), services.GetServiceTagsMoved()))
+	projectErr = append(projectErr, ConfirmSuccessfulCopy("Service Account Tags", services.GetServiceAccountTagsTotal(), services.GetServiceAccountTagsMoved()))
+	projectErr = append(projectErr, ConfirmSuccessfulCopy("Environment Tags", services.GetEnvironmentTagsTotal(), services.GetEnvironmentTagsMoved()))
 	projectErr = append(projectErr, ConfirmSuccessfulCopy("Target Groups", services.GetTargetGroupsTotal(), services.GetTargetGroupsMoved()))
 	projectErr = append(projectErr, ConfirmSuccessfulCopy("Targets", services.GetTargetsTotal(), services.GetTargetsMoved()))
 	projectErr = append(projectErr, ConfirmSuccessfulCopy("Templates", services.GetTemplatesTotal(), services.GetTemplatesMoved()))
@@ -219,7 +222,7 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) string {
 		}
 	} else {
 		fmt.Printf(Red+"Error encountered while copying project: '%v'. \n"+Reset, cp.Target.Project)
-		fmt.Printf(Red+"Source project: %v has not be froozen. \n"+Reset, cp.Source.Project)
+		fmt.Printf(Red+"Source project: %v has not be frozen. \n"+Reset, cp.Source.Project)
 		return "Errors encounter copying project"
 	}
 
@@ -251,8 +254,14 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) string {
 		zap.Int("OverridesMoved", services.GetOverridesMoved()),
 		zap.Int("ServicesTotal", services.GetServicesTotal()),
 		zap.Int("ServicesMoved", services.GetServicesMoved()),
-		zap.Int("TagsTotal", services.GetTagsTotal()),
-		zap.Int("TagsMoved", services.GetTagsMoved()),
+		zap.Int("ProjectTagsTotal", services.GetProjectTagsTotal()),
+		zap.Int("ProjectTagsMoved", services.GetProjectTagsMoved()),
+		zap.Int("ServiceTagsTotal", services.GetServiceTagsTotal()),
+		zap.Int("ServiceTagsMoved", services.GetServiceTagsMoved()),
+		zap.Int("ServiceAccountTagsTotal", services.GetServiceAccountTagsTotal()),
+		zap.Int("ServiceAccountTagsMoved", services.GetServiceAccountTagsMoved()),
+		zap.Int("EnvironmentTagsTotal", services.GetEnvironmentTagsTotal()),
+		zap.Int("EnvironmentTagsMoved", services.GetEnvironmentTagsMoved()),
 		zap.Int("TargetGroupsTotal", services.GetTargetGroupsTotal()),
 		zap.Int("TargetGroupsMoved", services.GetTargetGroupsMoved()),
 		zap.Int("TargetsTotal", services.GetTargetsTotal()),
