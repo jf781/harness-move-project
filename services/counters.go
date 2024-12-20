@@ -61,9 +61,21 @@ var serviceAccountsTotal int = 0
 
 var serviceAccountsMoved int = 0
 
-var tagsTotal int = 0
+var environmentTagsTotal int = 0
 
-var tagsMoved int = 0
+var environmentTagsMoved int = 0
+
+var projectTagsTotal int = 0
+
+var projectTagsMoved int = 0
+
+var serviceTagsTotal int = 0
+
+var serviceTagsMoved int = 0
+
+var serviceAccountTagsTotal int = 0
+
+var serviceAccountTagsMoved int = 0
 
 var targetGroupsTotal int = 0
 
@@ -351,20 +363,68 @@ func GetServiceAccountsMoved() int {
 }
 
 // Tags
-func IncrementTagsTotal() {
-	tagsTotal++
+func IncrementProjectTagsTotal() {
+	projectTagsTotal++
 }
 
-func GetTagsTotal() int {
-	return tagsTotal
+func GetProjectTagsTotal() int {
+	return projectTagsTotal
 }
 
-func IncrementTagsMoved() {
-	tagsMoved++
+func IncrementProjectTagsMoved() {
+	projectTagsMoved++
 }
 
-func GetTagsMoved() int {
-	return tagsMoved
+func GetProjectTagsMoved() int {
+	return projectTagsMoved
+}
+
+func IncrementServiceTagsTotal() {
+	serviceTagsTotal++
+}
+
+func GetServiceTagsTotal() int {
+	return serviceTagsTotal
+}
+
+func IncrementServiceTagsMoved() {
+	serviceTagsMoved++
+}
+
+func GetServiceTagsMoved() int {
+	return serviceTagsMoved
+}
+
+func IncrementServiceAccountTagsTotal() {
+	serviceAccountTagsTotal++
+}
+
+func GetServiceAccountTagsTotal() int {
+	return serviceAccountTagsTotal
+}
+
+func IncrementServiceAccountTagsMoved() {
+	serviceAccountTagsMoved++
+}
+
+func GetServiceAccountTagsMoved() int {
+	return serviceAccountTagsMoved
+}
+
+func IncrementEnvironmentTagsTotal() {
+	environmentTagsTotal++
+}
+
+func GetEnvironmentTagsTotal() int {
+	return environmentTagsTotal
+}
+
+func IncrementEnvironmentTagsMoved() {
+	environmentTagsMoved++
+}
+
+func GetEnvironmentTagsMoved() int {
+	return environmentTagsMoved
 }
 
 // Target Groups
@@ -519,8 +579,14 @@ func ResetAllCounters() {
 	servicesMoved = 0
 	serviceAccountsTotal = 0
 	serviceAccountsMoved = 0
-	tagsTotal = 0
-	tagsMoved = 0
+	environmentTagsTotal = 0
+	environmentTagsMoved = 0
+	projectTagsTotal = 0
+	projectTagsMoved = 0
+	serviceTagsTotal = 0
+	serviceTagsMoved = 0
+	serviceAccountTagsTotal = 0
+	serviceAccountTagsMoved = 0
 	targetGroupsTotal = 0
 	targetGroupsMoved = 0
 	targetsTotal = 0
