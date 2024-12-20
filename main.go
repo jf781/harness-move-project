@@ -19,7 +19,6 @@ var Version = "development"
 var errs []error
 var globalLogger *zap.Logger
 var globalLogBuffer bytes.Buffer
-var loopLogger *zap.Logger
 var SummaryReport []model.ProjectSummary
 
 func main() {
@@ -145,7 +144,9 @@ func run(c *cli.Context) error {
 	for i := 0; i < len(csvData.SourceOrg); i++ {
 		// Create a new log buffer for the project
 		var loopLogBuffer bytes.Buffer
-		var copyResult bool
+		var copyProject bool = true
+		var validCsv bool = true
+		var currentProjectSummary model.ProjectSummary
 
 		// Initialize and configure the logger for the project
 		loopConfig := zap.NewProductionConfig()
@@ -157,7 +158,8 @@ func run(c *cli.Context) error {
 			loopConfig.Level,
 		)
 
-		loopLogger = zap.New(loopCore)
+		loopLogger := zap.New(loopCore)
+		defer loopLogger.Sync() // Ensure the logger is properly synced
 
 		// Increment the number of projects moved
 		services.IncrementProjects()
@@ -191,7 +193,7 @@ func run(c *cli.Context) error {
 				zap.String("Source Project", cp.Source.Project),
 				zap.String("Target Org", cp.Target.Org),
 			)
-			continue // Skip this iteration if required data is missing
+			validCsv = false
 		}
 
 		// Use source project name if target project name is missing
@@ -199,34 +201,46 @@ func run(c *cli.Context) error {
 			cp.Target.Project = cp.Source.Project
 		}
 
-		fmt.Printf("Moving project '%v' from org '%v' to org '%v'. The target project will be named '%v'\n", cp.Source.Project, cp.Source.Org, cp.Target.Org, cp.Target.Project)
+		if validCsv {
 
-		// Execute the copy operation from source to target operation
-		if err := cp.Exec(); err != nil {
-			loopLogger.Error("Failed to Copy Project",
-				zap.String("Source Project", cp.Source.Project),
-				zap.String("Target Project", cp.Target.Project),
-				zap.Error(err),
-			)
-			errs = append(errs, err)
-			continue
+			fmt.Printf("Moving project '%v' from org '%v' to org '%v'. The target project will be named '%v'\n", cp.Source.Project, cp.Source.Org, cp.Target.Org, cp.Target.Project)
+
+			if !cp.ValidateProjects() {
+				// fmt.Printf("Failed to validate projects:  \n%v:%v\n%v:%v\n", cp.Source.Org, cp.Source.Project, cp.Target.Org, cp.Target.Project)
+				existingTargetProject := "Target project already exists"
+				currentProjectSummary = operation.ProjectCopySummary(cp.Source.Project, cp.Target.Project, existingTargetProject)
+				copyProject = false
+			}
+
+			// Execute the copy operation from source to target operation if the validation is successful
+			if copyProject {
+				if err := cp.Exec(); err != nil {
+					loopLogger.Error("Failed to Copy Project",
+						zap.String("Source Project", cp.Source.Project),
+						zap.String("Target Project", cp.Target.Project),
+						zap.Error(err),
+					)
+					errs = append(errs, err)
+					continue
+				}
+
+				// Validate the copy operation
+				copyResult := operation.ValidateAndLogCopy(cp, loopLogger)
+
+				// loopLogger.Info(fmt.Sprintf("Project '%v' has been copied to org: '%v' \n", cp.Source.Project, cp.Target.Org))
+
+				// Reset the API call counter
+				services.ResetAllCounters()
+
+				// Create a summary report for the project
+				currentProjectSummary = operation.ProjectCopySummary(cp.Source.Project, cp.Target.Project, copyResult)
+			}
 		}
-
-		// Validate the copy operation
-		copyResult = operation.ValidateAndLogCopy(cp, loopLogger)
-
-		loopLogger.Info(fmt.Sprintf("Project '%v' has been copied to org: '%v' \n", cp.Source.Project, cp.Target.Org))
-
-		// Reset the API call counter
-		services.ResetAllCounters()
+		// Add the project summary to the global summary report
+		SummaryReport = append(SummaryReport, currentProjectSummary)
 
 		// Parse and filter error messages for the project
 		operation.ParseAndPrintProjectLogs(loopLogBuffer.String(), logLevel, cp.Source.Project)
-
-		// Create a summary report for the project
-		currentProjectSummary := operation.ProjectCopySummary(cp.Source.Project, cp.Target.Project, copyResult)
-		SummaryReport = append(SummaryReport, currentProjectSummary)
-
 	}
 
 	// Parse and filter error messages for the global operation
