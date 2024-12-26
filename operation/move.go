@@ -154,7 +154,24 @@ func (f *Copy) Freeze() error {
 	}
 
 	freezeOperation := services.FreezeSourceProjectOperation(&api, f.Source.Org, f.Source.Project, f.Config.Logger)
-	if err := freezeOperation.Copy(); err != nil {
+	if err := freezeOperation.FreezeProject(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *Copy) DeleteTargetProject() error {
+
+	api := services.ApiRequest{
+		Client:  resty.New(),
+		Token:   d.Config.Token,
+		Account: d.Config.Account,
+		BaseURL: d.Config.BaseURL,
+	}
+
+	deleteOperation := services.DeleteProjectOperation(&api, d.Target.Org, d.Target.Project, d.Config.Logger)
+	if err := deleteOperation.DeleteProject(); err != nil {
 		return err
 	}
 

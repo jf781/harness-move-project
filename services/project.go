@@ -62,7 +62,7 @@ func (api *ApiRequest) ValidateProject(org, project string, logger *zap.Logger) 
 
 const NEW_PROJECT = "/ng/api/projects"
 
-type ProjectContext struct {
+type TwoProjectContext struct {
 	api           *ApiRequest
 	sourceOrg     string
 	sourceProject string
@@ -71,8 +71,15 @@ type ProjectContext struct {
 	logger        *zap.Logger
 }
 
-func NewProjectOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) ProjectContext {
-	return ProjectContext{
+type SingleProjectContext struct {
+	api     *ApiRequest
+	org     string
+	project string
+	logger  *zap.Logger
+}
+
+func NewProjectOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, targetProject string, logger *zap.Logger) TwoProjectContext {
+	return TwoProjectContext{
 		api:           api,
 		sourceOrg:     sourceOrg,
 		sourceProject: sourceProject,
@@ -82,7 +89,7 @@ func NewProjectOperation(api *ApiRequest, sourceOrg, sourceProject, targetOrg, t
 	}
 }
 
-func (c ProjectContext) Copy() error {
+func (c TwoProjectContext) Copy() error {
 	c.logger.Info("Creating new project",
 		zap.String("project", c.sourceProject),
 	)
@@ -238,6 +245,104 @@ func (api *ApiRequest) CreateProject(project *model.Project, logger *zap.Logger)
 	for t := range project.Tags {
 		_ = t
 		IncrementProjectTagsMoved()
+	}
+
+	return nil
+}
+
+func DeleteProjectOperation(api *ApiRequest, org, project string, logger *zap.Logger) SingleProjectContext {
+	return SingleProjectContext{
+		api:     api,
+		org:     org,
+		project: project,
+		logger:  logger,
+	}
+}
+
+func (c SingleProjectContext) DeleteProject() error {
+	c.logger.Info("Creating new project",
+		zap.String("project", c.project),
+	)
+	project := model.Project{
+		Identifier:    c.project,
+		OrgIdentifier: c.org,
+	}
+
+	err := c.api.DeleteProject(&project, c.logger)
+	if err != nil {
+		c.logger.Error("Failed to delete target project ",
+			zap.String("Project", c.project),
+			zap.Error(err),
+		)
+		return err
+	}
+
+	return nil
+}
+
+func (api *ApiRequest) DeleteProject(project *model.Project, logger *zap.Logger) error {
+
+	logger.Info("Deleting target project",
+		zap.String("project", project.Name),
+	)
+
+	IncrementApiCalls()
+
+	wrappedProject := model.ProjectWrapper{
+		Project: project,
+	}
+
+	resp, err := api.Client.R().
+		SetHeader("x-api-key", api.Token).
+		SetHeader("Content-Type", "application/json").
+		SetBody(wrappedProject).
+		SetQueryParams(map[string]string{
+			"accountIdentifier": api.Account,
+			"orgIdentifier":     project.OrgIdentifier,
+		}).
+		Delete(api.BaseURL + NEW_PROJECT + "/" + project.Identifier)
+	if err != nil {
+		logger.Error("Failed to send request to delete ",
+			zap.String("project", project.Name),
+			zap.Error(err),
+		)
+		return err
+	}
+	if resp.IsError() {
+		var errorResponse map[string]interface{}
+		if err := json.Unmarshal(resp.Body(), &errorResponse); err == nil {
+			if code, ok := errorResponse["code"].(string); ok && code == "DUPLICATE_FIELD" {
+				// Log as a warning and skip the error
+				logger.Info("Duplicate project found, ignoring error",
+					zap.String("project", project.Name),
+				)
+				return nil
+			}
+		} else {
+			logger.Error(
+				"Error response from API when creating ",
+				zap.String("project", project.Name),
+				zap.String("response",
+					resp.String(),
+				),
+			)
+		}
+		return handleErrorResponse(resp)
+	}
+	result := model.DeleteProjectResponse{}
+	err = json.Unmarshal(resp.Body(), &result)
+	if err != nil {
+		logger.Error("Failed to parse response from API",
+			zap.Error(err),
+		)
+		return err
+	}
+
+	if result.Status != "SUCCESS" {
+		logger.Error("Failed to delete project",
+			zap.Error(err),
+		)
+		return err
 	}
 
 	return nil
