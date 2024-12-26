@@ -203,6 +203,7 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) string {
 	projectErr = append(projectErr, ConfirmSuccessfulCopy("Service Tags", services.GetServiceTagsTotal(), services.GetServiceTagsMoved()))
 	projectErr = append(projectErr, ConfirmSuccessfulCopy("Service Account Tags", services.GetServiceAccountTagsTotal(), services.GetServiceAccountTagsMoved()))
 	projectErr = append(projectErr, ConfirmSuccessfulCopy("Environment Tags", services.GetEnvironmentTagsTotal(), services.GetEnvironmentTagsMoved()))
+	projectErr = append(projectErr, ConfirmSuccessfulCopy("Infrastructure Tags", services.GetInfrastructureTagsTotal(), services.GetInfrastructureTagsMoved()))
 	projectErr = append(projectErr, ConfirmSuccessfulCopy("Target Groups", services.GetTargetGroupsTotal(), services.GetTargetGroupsMoved()))
 	projectErr = append(projectErr, ConfirmSuccessfulCopy("Targets", services.GetTargetsTotal(), services.GetTargetsMoved()))
 	projectErr = append(projectErr, ConfirmSuccessfulCopy("Templates", services.GetTemplatesTotal(), services.GetTemplatesMoved()))
@@ -223,7 +224,17 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) string {
 	} else {
 		fmt.Printf(Red+"Error encountered while copying project: '%v'. \n"+Reset, cp.Target.Project)
 		fmt.Printf(Red+"Source project: %v has not be frozen. \n"+Reset, cp.Source.Project)
-		return "Errors encounter copying project"
+
+		if err := cp.DeleteTargetProject(); err != nil {
+			logger.Error("Failed to Delete Project",
+				zap.String("Project", cp.Target.Project),
+				zap.Error(err),
+			)
+			fmt.Printf(Red+"Error encountered while delete project: '%v'.  Err: %v \n"+Reset, cp.Target.Project, err)
+			return "Failed to delete target project"
+		}
+
+		return "Errors encounter copying project. Target project deleted"
 	}
 
 	// Output project entity counts to logger
@@ -262,6 +273,8 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) string {
 		zap.Int("ServiceAccountTagsMoved", services.GetServiceAccountTagsMoved()),
 		zap.Int("EnvironmentTagsTotal", services.GetEnvironmentTagsTotal()),
 		zap.Int("EnvironmentTagsMoved", services.GetEnvironmentTagsMoved()),
+		zap.Int("InfrastructureTagsTotal", services.GetInfrastructureTagsTotal()),
+		zap.Int("InfrastructureTagsMoved", services.GetInfrastructureTagsMoved()),
 		zap.Int("TargetGroupsTotal", services.GetTargetGroupsTotal()),
 		zap.Int("TargetGroupsMoved", services.GetTargetGroupsMoved()),
 		zap.Int("TargetsTotal", services.GetTargetsTotal()),
