@@ -77,6 +77,10 @@ var serviceAccountTagsTotal int = 0
 
 var serviceAccountTagsMoved int = 0
 
+var infrastructureTagsTotal int = 0
+
+var infrastructureTagsMoved int = 0
+
 var targetGroupsTotal int = 0
 
 var targetGroupsMoved int = 0
@@ -411,6 +415,22 @@ func GetServiceAccountTagsMoved() int {
 	return serviceAccountTagsMoved
 }
 
+func IncrementInfrastructureTagsTotal() {
+	infrastructureTagsTotal++
+}
+
+func GetInfrastructureTagsTotal() int {
+	return infrastructureTagsTotal
+}
+
+func IncrementInfrastructureTagsMoved() {
+	infrastructureTagsMoved++
+}
+
+func GetInfrastructureTagsMoved() int {
+	return infrastructureTagsMoved
+}
+
 func IncrementEnvironmentTagsTotal() {
 	environmentTagsTotal++
 }
@@ -581,6 +601,8 @@ func ResetAllCounters() {
 	serviceAccountsMoved = 0
 	environmentTagsTotal = 0
 	environmentTagsMoved = 0
+	infrastructureTagsTotal = 0
+	infrastructureTagsMoved = 0
 	projectTagsTotal = 0
 	projectTagsMoved = 0
 	serviceTagsTotal = 0

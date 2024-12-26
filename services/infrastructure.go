@@ -73,6 +73,11 @@ func (c InfrastructureContext) Copy() error {
 
 			IncrementInfrastructureTotal()
 
+			for t := range i.Tags {
+				_ = t
+				IncrementInfrastructureTagsTotal()
+			}
+
 			c.logger.Info("Processing infrastructure",
 				zap.String("infrastructure", i.Name),
 				zap.String("targetProject", c.targetProject),
@@ -87,6 +92,7 @@ func (c InfrastructureContext) Copy() error {
 				Description:       i.Description,
 				EnvironmentRef:    e.Identifier,
 				DeploymentType:    i.DeploymentType,
+				Tags:              i.Tags,
 				Type:              i.Type,
 				Yaml:              newYaml,
 			}, c.logger)
@@ -205,6 +211,11 @@ func (api *ApiRequest) createInfrastructure(infra *model.CreateInfrastructureReq
 			)
 		}
 		return handleErrorResponse(resp)
+	}
+
+	for t := range infra.Tags {
+		_ = t
+		IncrementInfrastructureTagsMoved()
 	}
 
 	return nil
