@@ -65,5 +65,6 @@ type (
 		SourceProject string
 		TargetProject string
 		Successful    string
+		ErrorMessage  string
 	}
 )

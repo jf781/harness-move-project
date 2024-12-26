@@ -141,6 +141,7 @@ func OperationSummary(summaryReport []model.ProjectSummary) {
 	// Output summary for all projects
 	maxSourceLen := len("Source Project")
 	maxTargetLen := len("Target Project")
+	maxErrorMessageLen := len("Error Message")
 	summaryColor := ""
 	for _, summary := range summaryReport {
 		if len(summary.SourceProject) > maxSourceLen {
@@ -149,32 +150,43 @@ func OperationSummary(summaryReport []model.ProjectSummary) {
 		if len(summary.TargetProject) > maxTargetLen {
 			maxTargetLen = len(summary.TargetProject)
 		}
+		if len(summary.ErrorMessage) > maxErrorMessageLen {
+			maxErrorMessageLen = len(summary.ErrorMessage)
+		}
 	}
 
-	headerFmt := fmt.Sprintf("%%-%ds  %%-%ds  %%s\n", maxSourceLen, maxTargetLen)
-	rowFmt := fmt.Sprintf("%%-%ds  %%-%ds  %%s\n", maxSourceLen, maxTargetLen)
+	headerFmt := fmt.Sprintf("%%-%ds  %%-%ds  %%s  %%-%ds\n", maxSourceLen, maxTargetLen, maxErrorMessageLen)
+	rowFmt := fmt.Sprintf("%%-%ds  %%-%ds  %%s       %%-%ds\n", maxSourceLen, maxTargetLen, maxErrorMessageLen)
 
 	fmt.Println("\nSummary Report:")
-	fmt.Printf(headerFmt, "Source Project", "Target Project", "Successful")
-	fmt.Println(strings.Repeat("-", maxSourceLen+maxTargetLen+15))
+	fmt.Printf(headerFmt, "Source Project", "Target Project", "Successful", "Error Message")
+	fmt.Println(strings.Repeat("-", maxSourceLen+maxTargetLen+maxErrorMessageLen+15))
 
 	for _, summary := range summaryReport {
-		successStr := summary.Successful
+		errorMessage := summary.ErrorMessage
 		summaryColor = Red
-		if summary.Successful == "Successful" {
-			successStr = summary.Successful
+		if summary.Successful == "True" {
 			summaryColor = Green
 		}
-		fmt.Printf(summaryColor+rowFmt, summary.SourceProject, summary.TargetProject, successStr+Reset)
+		fmt.Printf(summaryColor+rowFmt, summary.SourceProject, summary.TargetProject, summary.Successful, errorMessage+Reset)
 	}
 }
 
 // Function to create a summary report for each project
-func ProjectCopySummary(sourceProject, targetProject, copyStatus string) model.ProjectSummary {
+func ProjectCopySummary(sourceProject, targetProject, errorMessage string) model.ProjectSummary {
 	var projectSummary model.ProjectSummary
+	var copyStatus string
+
+	if errorMessage == "" {
+		copyStatus = "True"
+	} else {
+		copyStatus = "False"
+	}
+
 	projectSummary.SourceProject = sourceProject
 	projectSummary.TargetProject = targetProject
 	projectSummary.Successful = copyStatus
+	projectSummary.ErrorMessage = errorMessage
 	return projectSummary
 }
 
@@ -291,7 +303,7 @@ func ValidateAndLogCopy(cp Copy, logger *zap.Logger) string {
 		zap.Int("VariablesMoved", services.GetVariablesMoved()),
 	)
 
-	return "Successful"
+	return ""
 }
 
 func ConfirmSuccessfulCopy(entityType string, total, copied int) bool {
