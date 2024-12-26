@@ -13,31 +13,24 @@ import (
 const FREEZEPROJECT = "/ng/api/freeze"
 const FREEZEPROJECTSTATUS = "/ng/api/freeze/updateFreezeStatus"
 
-type FreezeSourceProjectContext struct {
-	api           *ApiRequest
-	sourceOrg     string
-	sourceProject string
-	logger        *zap.Logger
-}
-
-func FreezeSourceProjectOperation(api *ApiRequest, sourceOrg, sourceProject string, logger *zap.Logger) FreezeSourceProjectContext {
-	return FreezeSourceProjectContext{
-		api:           api,
-		sourceOrg:     sourceOrg,
-		sourceProject: sourceProject,
-		logger:        logger,
+func FreezeSourceProjectOperation(api *ApiRequest, sourceOrg, sourceProject string, logger *zap.Logger) SingleProjectContext {
+	return SingleProjectContext{
+		api:     api,
+		org:     sourceOrg,
+		project: sourceProject,
+		logger:  logger,
 	}
 }
 
-func (c FreezeSourceProjectContext) Copy() error {
+func (c SingleProjectContext) FreezeProject() error {
 
 	timeZone, _ := time.LoadLocation("America/Los_Angeles")
 	currentTime := time.Now().In(timeZone)
 
-	fmt.Printf("Freezing source project: '%s'. \n", c.sourceProject)
+	fmt.Printf("Freezing source project: '%s'. \n", c.project)
 
 	c.logger.Info("Freezing project",
-		zap.String("project", c.sourceProject),
+		zap.String("project", c.project),
 	)
 
 	freeze := model.FreezeRequest{
@@ -54,8 +47,8 @@ func (c FreezeSourceProjectContext) Copy() error {
 				},
 			},
 			Status:            "Disabled",
-			OrgIdentifier:     c.sourceOrg,
-			ProjectIdentifier: c.sourceProject,
+			OrgIdentifier:     c.org,
+			ProjectIdentifier: c.project,
 			Windows: []model.Window{
 				{
 					TimeZone:  "America/Los_Angeles",
@@ -71,36 +64,36 @@ func (c FreezeSourceProjectContext) Copy() error {
 
 	if err != nil {
 		c.logger.Error("Failed to marshal freeze request",
-			zap.String("project", c.sourceProject),
+			zap.String("project", c.project),
 			zap.Error(err),
 		)
 	}
 
-	freezeId, err := c.api.createProjectFreeze(&freezeRequest, c.sourceOrg, c.sourceProject, c.logger)
+	freezeId, err := c.api.createProjectFreeze(&freezeRequest, c.org, c.project, c.logger)
 
 	if *freezeId == "duplicate" {
 		c.logger.Info("Duplicate project freeze",
-			zap.String("project", c.sourceProject),
+			zap.String("project", c.project),
 		)
-		fmt.Printf("Project '%s' is already frozen. \n", c.sourceProject)
+		fmt.Printf("Project '%s' is already frozen. \n", c.project)
 		return nil
 	}
 	if freezeId == nil {
-		return fmt.Errorf("failed to create freeze for project %s", c.sourceProject)
+		return fmt.Errorf("failed to create freeze for project %s", c.project)
 	}
 	freezeSlc := []string{*freezeId}
 
 	if err != nil {
 		c.logger.Error("Failed to create project freeze",
-			zap.String("project", c.sourceOrg),
+			zap.String("project", c.org),
 			zap.Error(err),
 		)
 	} else {
-		err := c.api.enableProjectFreeze(&freezeSlc, c.sourceOrg, c.sourceProject, c.logger)
+		err := c.api.enableProjectFreeze(&freezeSlc, c.org, c.project, c.logger)
 
 		if err != nil {
 			c.logger.Error("Failed to enable project freeze ",
-				zap.String("project", c.sourceOrg),
+				zap.String("project", c.org),
 				zap.Error(err),
 			)
 		}
