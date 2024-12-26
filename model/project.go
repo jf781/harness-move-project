@@ -28,3 +28,10 @@ type Project struct {
 type ProjectWrapper struct {
 	Project *Project `json:"project"`
 }
+
+type DeleteProjectResponse struct {
+	Status        string `json:"status"`
+	Code          string `json:"code"`
+	Message       string `json:"message"`
+	CorrelationID string `json:"correlationId"`
+}

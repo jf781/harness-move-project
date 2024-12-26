@@ -22,25 +22,27 @@ type InfraDefListContent struct {
 }
 
 type Infrastructure struct {
-	Account           string  `json:"accountId"`
-	Identifier        string  `json:"identifier"`
-	OrgIdentifier     string  `json:"orgIdentifier"`
-	ProjectIdentifier string  `json:"projectIdentifier"`
-	Name              string  `json:"name"`
-	Description       *string `json:"description,omitempty"`
-	Type              string  `json:"type"`
-	DeploymentType    string  `json:"deploymentType"`
-	Yaml              string  `json:"yaml"`
+	Account           string            `json:"accountId"`
+	Identifier        string            `json:"identifier"`
+	OrgIdentifier     string            `json:"orgIdentifier"`
+	ProjectIdentifier string            `json:"projectIdentifier"`
+	Name              string            `json:"name"`
+	Description       *string           `json:"description,omitempty"`
+	Type              string            `json:"type"`
+	Tags              map[string]string `json:"tags"`
+	DeploymentType    string            `json:"deploymentType"`
+	Yaml              string            `json:"yaml"`
 }
 
 type CreateInfrastructureRequest struct {
-	Name              string  `json:"name"`
-	Identifier        string  `json:"identifier"`
-	Description       *string `json:"description,omitempty"`
-	OrgIdentifier     string  `json:"orgIdentifier"`
-	ProjectIdentifier string  `json:"projectIdentifier"`
-	EnvironmentRef    string  `json:"environmentRef"`
-	DeploymentType    string  `json:"deploymentType"`
-	Type              string  `json:"type"`
-	Yaml              string  `json:"yaml"`
+	Name              string            `json:"name"`
+	Identifier        string            `json:"identifier"`
+	Description       *string           `json:"description,omitempty"`
+	OrgIdentifier     string            `json:"orgIdentifier"`
+	ProjectIdentifier string            `json:"projectIdentifier"`
+	EnvironmentRef    string            `json:"environmentRef"`
+	DeploymentType    string            `json:"deploymentType"`
+	Tags              map[string]string `json:"tags"`
+	Type              string            `json:"type"`
+	Yaml              string            `json:"yaml"`
 }
